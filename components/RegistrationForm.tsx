@@ -134,12 +134,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 px-2 md:px-0">
-      <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white p-4 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl space-y-4 md:space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-6 border-b border-slate-50 pb-6">
+        <div className="flex items-center gap-4 md:gap-6 border-b border-slate-50 pb-4 md:pb-6">
           <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-[1.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl flex items-center justify-center group cursor-pointer" onClick={() => document.getElementById('file-upload')?.click()}>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl flex items-center justify-center group cursor-pointer" onClick={() => document.getElementById('file-upload')?.click()}>
               <img src={previewUrl} alt="Alumno" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
             </div>
             {!initialData?.isRenewal && (
@@ -160,16 +160,16 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
         </div>
 
         {/* Sección Datos Personales - Grid Ajustado (Gap-4 en lugar de Gap-10) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="space-y-2 md:space-y-3">
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary"></div> Datos del Estudiante
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
               <input
                 placeholder="Nombres"
                 value={formData.nombre}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, nombre: e.target.value })}
                 required
                 disabled={initialData?.isRenewal}
@@ -177,7 +177,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
               <input
                 placeholder="Apellidos"
                 value={formData.apellido}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, apellido: e.target.value })}
                 required
                 disabled={initialData?.isRenewal}
@@ -185,14 +185,14 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
               <input
                 placeholder="Colegio"
                 value={formData.colegio}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, colegio: e.target.value })}
                 disabled={initialData?.isRenewal}
               />
               <input
                 placeholder="Grado"
                 value={formData.grado}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, grado: e.target.value })}
                 disabled={initialData?.isRenewal}
               />
@@ -203,11 +203,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary"></div> Tutor Responsable
             </h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2 md:gap-3">
               <input
                 placeholder="Nombre Completo del Tutor"
                 value={formData.tutorNombre}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none font-bold focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, tutorNombre: e.target.value })}
                 required
                 disabled={initialData?.isRenewal}
@@ -215,7 +215,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
               <input
                 placeholder="Teléfono / WhatsApp"
                 value={formData.tutorTelefono}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/10 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, tutorTelefono: e.target.value })}
                 required
                 disabled={initialData?.isRenewal}
@@ -232,7 +232,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
               <input
                 type="date"
                 value={formData.fechaInscripcion}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all text-sm"
                 onChange={e => setFormData({ ...formData, fechaInscripcion: e.target.value })}
                 required
               />
@@ -241,7 +241,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
               <label className="text-[10px] font-black text-inactive uppercase tracking-widest block mb-1">Módulo Académico</label>
               <select
                 value={formData.moduloId}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all cursor-pointer text-sm"
+                className="w-full px-3 py-2 md:px-4 md:py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all cursor-pointer text-sm"
                 onChange={handleModuleChange}
                 required
               >
@@ -258,7 +258,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
                 <label className="text-[10px] font-black text-inactive uppercase tracking-widest block mb-1">Turno / Horario</label>
                 <select
                   value={formData.horarioId}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all cursor-pointer disabled:opacity-50 text-sm"
+                  className="w-full px-3 py-2 md:px-4 md:py-3 bg-white border border-slate-200 rounded-xl font-bold text-primary outline-none focus:border-primary/30 transition-all cursor-pointer disabled:opacity-50 text-sm"
                   disabled={!formData.moduloId}
                   onChange={e => setFormData({ ...formData, horarioId: e.target.value })}
                   required={formData.moduloId !== 'custom'}
