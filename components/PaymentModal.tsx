@@ -46,13 +46,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
     }
   }, [inscripcion.alumnoId, inscripcion.modulo, inscripcion.horario, pagoToEdit]);
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (monto <= 0) return alert("Ingrese un monto");
     setLoading(true);
     try {
       let result: Pago | null;
       if (pagoToEdit) {
-        result = dbService.updatePago({
+        result = await dbService.updatePago({
           ...pagoToEdit,
           monto,
           metodo,
@@ -61,7 +61,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           nota
         });
       } else {
-        result = dbService.registrarPago({
+        result = await dbService.registrarPago({
           inscripcionId: inscripcion.id,
           monto,
           metodo,

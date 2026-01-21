@@ -45,9 +45,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
   }, [asistencias, selectedInscId]);
 
-  const handleRegister = (inscripcionId: string, estado: AttendanceStatus, date: string, obs: string = '') => {
+  const handleRegister = async (inscripcionId: string, estado: AttendanceStatus, date: string, obs: string = '') => {
     try {
-      dbService.registrarAsistencia(inscripcionId, estado, date, obs);
+      await dbService.registrarAsistencia(inscripcionId, estado, date, obs);
       setStatus({ msg: 'Registro exitoso', type: 'success' });
       setTimeout(() => setStatus(null), 3000);
       setIsAddingNew(false);
@@ -70,7 +70,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
   const saveEdit = async () => {
     if (!editingId) return;
     try {
-      dbService.editarAsistencia(editingId, editForm);
+      await dbService.editarAsistencia(editingId, editForm);
       setEditingId(null);
       setStatus({ msg: 'Actualizado correctamente', type: 'success' });
       setTimeout(() => setStatus(null), 3000);

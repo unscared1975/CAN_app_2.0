@@ -49,10 +49,32 @@ const App: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<{ alumno: Alumno, inscripcion: Inscripcion, isRenewal?: boolean } | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
+  const [initializing, setInitializing] = useState(true);
+
   useEffect(() => {
-    dbService.init();
-    loadData();
-  }, [view]);
+    const initDB = async () => {
+      await dbService.init();
+      setInitializing(false);
+    };
+    initDB();
+  }, []);
+
+  useEffect(() => {
+    if (!initializing) {
+      loadData();
+    }
+  }, [view, initializing]);
+
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <p className="text-sm font-black text-primary uppercase tracking-widest animate-pulse">Sincronizando Cloud...</p>
+        </div>
+      </div>
+    );
+  }
 
   const loadData = useCallback(() => {
     try {
@@ -137,19 +159,24 @@ const App: React.FC = () => {
     return { totalIngresos, totalEgresos, saldoNeto, history };
   }, [filteredInscripciones, searchTerm, inscripciones]);
 
-  const handleRegistration = (data: any) => {
+  const handleRegistration = async (data: any) => {
     try {
       if (data.isRenewal) {
-        dbService.createInscripcion({ ...data, alumnoId: data.alumno.id });
+        await dbService.createInscripcion({ ...data, alumnoId: data.alumno.id });
         showNotification("Reinscripción exitosa", "success");
       } else if (data.alumno.id && data.inscripcionId) {
-        dbService.updateAlumno(data.alumno);
-        dbService.updateInscripcion({ id: data.inscripcionId, ...data });
+        await dbService.updateAlumno(data.alumno);
+        await dbService.updateInscripcion({ id: data.inscripcionId, ...data });
         showNotification("Perfil actualizado", "success");
       } else {
-        const alumno = dbService.saveAlumno(data.alumno);
-        dbService.createInscripcion({ alumnoId: alumno.id, ...data });
-        showNotification("Alumno registrado", "success");
+        const alumno = await dbService.saveAlumno(data.alumno);
+        // Ensure we have an ID before creating inscription
+        if (alumno && alumno.id) {
+          await dbService.createInscripcion({ alumnoId: alumno.id, ...data });
+          showNotification("Alumno registrado", "success");
+        } else {
+          throw new Error("Error al guardar alumno");
+        }
       }
       setEditingStudent(null);
       setView(ViewMode.ALUMNOS);
