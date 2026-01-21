@@ -1,0 +1,7 @@
+{
+  "name": "CAN app 2.0 ",
+  "description": "Una plataforma administrativa avanzada para centros de nivelación académica, permitiendo la gestión de estudiantes, control de asistencia inteligente y seguimiento financiero con estética profesional.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F8FAFC;
+    color: #1E293B;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #26475C;
+    border-radius: 10px;
+}
+
+/* EZ-Flicker Effect */
+@keyframes ez-flicker {
+
+    0%,
+    100% {
+        color: #EF4444;
+        opacity: 1;
+    }
+
+    50% {
+        color: #94A3B8;
+        opacity: 0.5;
+    }
+}
+
+.animate-ez-flicker {
+    animation: ez-flicker 1.5s infinite;
+}
+
+/* Estilos para el calendario desplegable nativo */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2326475C" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>');
+    cursor: pointer;
+    padding: 5px;
+    filter: none;
+}
