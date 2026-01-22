@@ -15,6 +15,8 @@ interface PaymentModalProps {
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose, onSuccess, pagoToEdit }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null); // Referencia dedicada para la generación de imagen
+
   const totalAbonadoSinEste = useMemo(() => {
     const total = dbService.getTotalAbonado(inscripcion.id);
     return pagoToEdit ? (total - Number(pagoToEdit.monto)) : total;
@@ -26,7 +28,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
   const [metodo, setMetodo] = useState<PaymentMethod>(pagoToEdit?.metodo || 'QR');
   const [fecha, setFecha] = useState(pagoToEdit?.fecha || new Date().toISOString().split('T')[0]);
   const [concepto, setConcepto] = useState(pagoToEdit?.concepto || '');
-  const [nota, setNota] = useState(pagoToEdit?.nota || 'Solo tiene opción a una falta y a una licencia, tomar en cuenta eso por favor.');
+  const [nota, setNota] = useState(pagoToEdit?.nota || 'Solo tiene derecho a una falta o una licencia');
 
   const [lastSavedPago, setLastSavedPago] = useState<Pago | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,13 +86,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
   };
 
   const handleShareImage = async () => {
-    if (!modalRef.current) return;
+    // Usamos la referencia oculta para garantizar el diseño "Teal Frame" sin afectar la UI visible
+    if (!exportRef.current) return;
     setLoading(true);
     try {
-      const canvas = await html2canvas(modalRef.current, {
+      const canvas = await html2canvas(exportRef.current, {
         scale: 3,
         useCORS: true,
-        backgroundColor: null, // Transparent/Use element background
+        backgroundColor: null,
       });
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.98));
       if (blob && navigator.share) {
@@ -105,7 +108,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  const renderTicketContent = () => (
+  const renderTicketContent = (forExport = false) => (
     <>
       <div className="h-[100px] bg-[#26475C] flex flex-col items-center justify-center px-4 relative">
         <img src="https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png" alt="Logo" className="w-[42px] h-[42px] mb-1" />
@@ -123,7 +126,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           {isConfirmed && (
             <p className="text-[18px] font-bold text-[#10B981] uppercase tracking-tighter mb-2 animate-in zoom-in">★ PAGO EXITOSO ★</p>
           )}
-          <h4 className="text-[16px] font-semibold text-[#1B3A4B] uppercase px-4 leading-normal break-words">
+          {/* Nombre en una sola línea para el ticket visual y exportado */}
+          <h4 className={`text-[16px] font-semibold text-[#1B3A4B] uppercase px-4 leading-normal ${forExport || isConfirmed ? 'whitespace-nowrap overflow-hidden text-ellipsis' : ''}`}>
             {inscripcion.alumno?.nombre} {inscripcion.alumno?.apellido}
           </h4>
         </div>
@@ -180,12 +184,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           <div className={`p-[12px] rounded-[20px] ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[11px] font-medium text-[#4B5563] uppercase block mb-1">Nota:</label>
             {isConfirmed ? (
-              <p className="text-[11px] font-medium italic text-[#4B5563] leading-tight animate-in fade-in breakdown-words">{nota}</p>
+              <p className="text-[11px] font-bold italic text-red-600 leading-tight animate-in fade-in breakdown-words">{nota}</p>
             ) : (
               <textarea
                 value={nota}
                 onChange={e => setNota(e.target.value)}
-                className="bg-transparent w-full text-[11px] font-bold text-[#1B3A4B] outline-none resize-none h-[44px]"
+                className="bg-transparent w-full text-[11px] font-bold text-red-600 outline-none resize-none h-[44px]"
                 placeholder="Escriba advertencias o notas..."
               />
             )}
@@ -207,7 +211,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           </div>
         </div>
       </div>
-      {/* Branding en el ticket (Footer interna del ticket - Solo visible en modo confirmed) */}
+
+      {/* Footer Branding solo para el ticket final (visual o exportado) */}
       {isConfirmed && (
         <div className="bg-[#1B3A4B] p-2 text-center">
           <p className="text-[8px] font-bold text-white/50 uppercase tracking-[0.2em]">IDENTIDAD EZ • CAN APP 2.0</p>
@@ -218,39 +223,50 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
 
   return (
     <div className="fixed inset-0 bg-[#1B3A4B]/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      {/* Simulación Resolución 1080 x 2436 px (Scale factor applied) */}
 
-      {!isConfirmed ? (
-        <div className="bg-white w-full max-w-[414px] rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      {/* 1. VISTA DE REGISTRO (Screen Input) */}
+      {!isConfirmed && (
+        // Ancho completo disponible hasta un máximo razonable para escritorio
+        <div className="bg-white w-full max-w-lg md:max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
           {renderTicketContent()}
-          {/* Acciones del Sistema - Fila Única 42px */}
+          {/* Botones integrados */}
           <div className="px-[20px] pb-[24px] pt-[8px] bg-white">
             <button onClick={handleConfirmPayment} disabled={loading} className="w-full h-[42px] bg-[#26475C] text-white rounded-[16px] text-[14px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#26475C]/20">
               {loading ? 'Validando...' : (pagoToEdit ? 'Confirmar Corrección' : 'Registrar Abono')}
             </button>
           </div>
         </div>
-      ) : (
-        <div className="w-full max-w-[414px] flex flex-col gap-4 animate-in zoom-in-95 duration-300">
-          {/* TICKET PARA CAPTURA: Marco Teal Centrado + Card Blanca */}
-          <div ref={modalRef} className="bg-[#59A9B9] p-6 flex flex-col items-center justify-center rounded-[20px] shadow-2xl">
-            <div className="bg-white w-full rounded-[32px] overflow-hidden shadow-sm">
-              {renderTicketContent()}
-            </div>
-          </div>
+      )}
 
-          {/* Botones Flotantes (Fuera de captura) */}
-          <div className="flex flex-row items-center gap-[10px]">
+      {/* 2. VISTA DE ÉXITO (Screen Success) */}
+      {isConfirmed && (
+        // Ancho completo disponible, botones visibles sin scroll
+        <div className="bg-white w-full max-w-lg md:max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+          {renderTicketContent()}
+
+          {/* Botones en una sola fila */}
+          <div className="px-[20px] pb-[24px] pt-[8px] bg-white flex flex-row items-center gap-[10px]">
             <button onClick={handleShareImage} className="h-[42px] flex-1 flex items-center justify-center gap-2 bg-[#059669] text-white rounded-[16px] active:scale-95 transition-all shadow-lg shadow-[#059669]/20 hover:bg-[#047857]">
               <ICONS.Share className="w-4 h-4" /> <span className="text-[12px] font-bold uppercase">JPG</span>
             </button>
             <button onClick={() => receiptService.generatePDF(inscripcion, lastSavedPago!, totalAbonadoSinEste + Number(lastSavedPago!.monto)).save(receiptService.getSuggestedFileName(inscripcion, lastSavedPago!))} className="h-[42px] flex-1 flex items-center justify-center gap-2 bg-[#1E293B] text-white rounded-[16px] active:scale-95 transition-all shadow-lg shadow-[#1E293B]/20 hover:bg-[#0f172a]">
               <ICONS.Download className="w-4 h-4" /> <span className="text-[12px] font-bold uppercase">PDF</span>
             </button>
-            <button onClick={onSuccess} className="h-[42px] flex-1 bg-white text-[#26475C] rounded-[16px] text-[12px] font-bold uppercase active:scale-95 transition-all shadow-lg hover:bg-slate-50">Listo</button>
+            <button onClick={onSuccess} className="h-[42px] flex-1 bg-white text-[#26475C] rounded-[16px] text-[12px] font-bold uppercase active:scale-95 transition-all shadow-lg hover:bg-slate-50 border border-slate-200">Listo</button>
           </div>
         </div>
       )}
+
+      {/* 3. VISTA OCULTA PARA EXPORTACIÓN (Hidden Export Container) */}
+      {/* Estilo fijo para generar la imagen: Marco Verde Azulado Centrado con Tarjeta Blanca */}
+      <div style={{ position: 'absolute', top: -9999, left: -9999 }}>
+        <div ref={exportRef} className="bg-[#59A9B9] p-8 w-[420px] flex flex-col items-center justify-center">
+          <div className="bg-white w-full rounded-[32px] overflow-hidden shadow-2xl scale-100">
+            {renderTicketContent(true)}
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
