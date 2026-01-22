@@ -122,12 +122,12 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
 
       {mode === 'daily' ? (
         <div className="space-y-8">
-          <div className="bg-white px-8 py-5 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center justify-between shadow-sm gap-4">
+          <div className="bg-white px-5 md:px-8 py-5 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center justify-between shadow-sm gap-4">
             <div>
               <h3 className="text-sm font-black text-primary uppercase tracking-[0.3em] leading-none mb-1">REGISTRO DE ASISTENCIA DIARIA</h3>
               <p className="text-[10px] font-bold text-inactive uppercase tracking-widest">Lógica de Filtrado Sincronizada</p>
             </div>
-            <input type="date" value={fechaDiaria} onChange={e => setFechaDiaria(e.target.value)} className="px-6 py-3 bg-slate-50 rounded-2xl font-black text-primary text-xs outline-none border-2 border-transparent focus:border-primary/5 shadow-inner" />
+            <input type="date" value={fechaDiaria} onChange={e => setFechaDiaria(e.target.value)} className="w-full md:w-auto px-6 py-3 bg-slate-50 rounded-2xl font-black text-primary text-xs outline-none border-2 border-transparent focus:border-primary/5 shadow-inner" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

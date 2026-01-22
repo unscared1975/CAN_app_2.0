@@ -108,7 +108,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1B3A4B]/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-[#59A9B9] z-[100] flex items-center justify-center p-4">
       {/* Simulación Resolución 1080 x 2436 px (Scale factor applied) */}
       <div className="bg-white w-full max-w-[414px] rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
 
