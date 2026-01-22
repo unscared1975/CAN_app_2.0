@@ -30,9 +30,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
   const [concepto, setConcepto] = useState(pagoToEdit?.concepto || '');
   const [nota, setNota] = useState(pagoToEdit?.nota || 'Solo tiene derecho a una falta o una licencia');
 
-  const [lastSavedPago, setLastSavedPago] = useState<Pago | null>(null);
+  const [lastSavedPago, setLastSavedPago] = useState<Pago | null>(pagoToEdit || null);
   const [loading, setLoading] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(!!pagoToEdit);
 
   // Memoria de Concepto Específica por Alumno (Solo si no estamos editando)
   useEffect(() => {
@@ -42,7 +42,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         setConcepto(memo);
       } else {
         const hStr = inscripcion.horario ? `${inscripcion.horario.horaInicio} a ${inscripcion.horario.horaFin}` : '';
-        // SE ELIMINÓ EL PREFIJO 'Modulo:' POR REDUNDANCIA
+
         setConcepto(`${inscripcion.modulo?.nombre || ''} ${hStr}`);
       }
     }
@@ -127,7 +127,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             <p className="text-[18px] font-bold text-[#10B981] uppercase tracking-tighter mb-2 animate-in zoom-in">★ PAGO EXITOSO ★</p>
           )}
           {/* Nombre en una sola línea para el ticket visual y exportado */}
-          <h4 className={`text-[16px] font-semibold text-[#1B3A4B] uppercase px-4 leading-normal ${forExport || isConfirmed ? 'whitespace-nowrap overflow-hidden text-ellipsis' : ''}`}>
+          <h4 className="text-[16px] font-semibold text-[#1B3A4B] uppercase px-4 leading-normal">
             {inscripcion.alumno?.nombre} {inscripcion.alumno?.apellido}
           </h4>
         </div>
@@ -215,7 +215,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
       {/* Footer Branding solo para el ticket final (visual o exportado) */}
       {isConfirmed && (
         <div className="bg-[#1B3A4B] p-2 text-center">
-          <p className="text-[8px] font-bold text-white/50 uppercase tracking-[0.2em]">IDENTIDAD EZ • CAN APP 2.0</p>
+          <p className="text-[8px] font-bold text-white/50 uppercase tracking-[0.2em]">CAN APP 2.0</p>
         </div>
       )}
     </>

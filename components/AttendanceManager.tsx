@@ -33,7 +33,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
   const asistencias = dbService.getAsistencias();
 
   // Dependemos de la lista filtrada que viene por props
-  const alumnosDiarios = inscripciones;
+
 
   const selectedInscripcion = useMemo(() =>
     inscripciones.find(i => i.id === selectedInscId),
@@ -131,7 +131,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {alumnosDiarios.map(i => {
+            {inscripciones.map(i => {
               const registro = asistencias.find(a => a.inscripcionId === i.id && a.fecha === fechaDiaria);
               const initials = dbService.getInitials(i.alumno?.nombre, i.alumno?.apellido);
               const isFinished = i.saldoClases === 0;
@@ -209,7 +209,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                   className="w-full px-6 py-5 bg-slate-50 rounded-2xl font-black text-primary text-xs outline-none border-2 border-transparent focus:border-primary/5 shadow-inner appearance-none cursor-pointer"
                 >
                   <option value="">-- Buscar Alumno --</option>
-                  {alumnosDiarios.map(i => (
+                  {inscripciones.map(i => (
                     <option key={i.id} value={i.id}>{i.alumno?.nombre} {i.alumno?.apellido}</option>
                   ))}
                 </select>

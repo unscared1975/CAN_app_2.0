@@ -122,7 +122,7 @@ export const dbService = {
 
     _initPromise = (async () => {
       try {
-        console.log("Iniciando sincronización con Supabase...");
+
 
         const [
           alumnosRes,
@@ -553,8 +553,6 @@ export const dbService = {
 
     // Deduct class if valid attendance
     if (estado === 'P' || estado === 'F') {
-      //   if (_cacheInscripciones[iIdx].saldoClases <= 0) throw new Error('Sin saldo de clases.'); // Removed throw to prevent UI lock logic mismatch, just allow and let it go negative or stay 0? Previous code threw error.
-      //   Let's keep error check relevant:
       if (_cacheInscripciones[iIdx].saldoClases > 0) {
         _cacheInscripciones[iIdx].saldoClases -= 1;
       }

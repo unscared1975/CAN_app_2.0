@@ -590,7 +590,19 @@ const App: React.FC = () => {
                       <tr><td colSpan={5} className="py-20 text-center text-inactive uppercase text-[10px] font-black tracking-widest opacity-50 italic">No hay transacciones que coincidan con los filtros</td></tr>
                     ) : (
                       financialSummary.history.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                        <tr
+                          key={item.id}
+                          onClick={() => {
+                            if (item.type === 'ingreso') {
+                              const found = inscripciones.find(i => i.id === item.inscripcionId);
+                              if (found) {
+                                setSelectedInscripcion(found);
+                                setPagoToEdit(item);
+                              }
+                            }
+                          }}
+                          className={`hover:bg-slate-50 transition-colors ${item.type === 'ingreso' ? 'cursor-pointer hover:bg-emerald-50/30' : ''}`}
+                        >
                           <td className="px-8 py-5 text-xs font-bold text-slate-500">{dbService.formatDateDisplay(item.fecha)}</td>
 
                           {/* COLUMNA TUTOR / ALUMNO */}
