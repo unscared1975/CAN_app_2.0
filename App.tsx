@@ -50,11 +50,26 @@ const App: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
 
   const [initializing, setInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     const initDB = async () => {
-      await dbService.init();
-      setInitializing(false);
+      try {
+        // Timeout de seguridad: Si DB tarda más de 5s, forzamos carga
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Tiempo de espera agotado")), 8000));
+
+        await Promise.race([
+          dbService.init(),
+          timeoutPromise
+        ]);
+
+        setInitializing(false);
+      } catch (e: any) {
+        console.error("Error crítico inicializando:", e);
+        // No bloqueamos la app, permitimos entrar offline o con datos vacíos
+        setInitError(e.message || "Error de conexión");
+        setInitializing(false);
+      }
     };
     initDB();
   }, []);
@@ -65,16 +80,14 @@ const App: React.FC = () => {
     }
   }, [view, initializing]);
 
-  if (initializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          <p className="text-sm font-black text-primary uppercase tracking-widest animate-pulse">Sincronizando Cloud...</p>
-        </div>
-      </div>
-    );
-  }
+  // Debug Error Banner (Solo visible si falló init)
+  const ErrorBanner = () => initError ? (
+    <div className="bg-red-50 text-red-600 px-4 py-2 text-[10px] font-bold text-center border-b border-red-100 flex items-center justify-center gap-2">
+      <ICONS.TrendDown className="w-4 h-4" />
+      <span>Modo Offline: {initError} - Verifique su conexión</span>
+      <button onClick={() => setInitError(null)} className="ml-2 underline">Ocultar</button>
+    </div>
+  ) : null;
 
   const loadData = useCallback(() => {
     try {
@@ -193,6 +206,20 @@ const App: React.FC = () => {
     if (e.key === 'Escape') setSearchTerm('');
   };
 
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-6 p-8 text-center">
+          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <div>
+            <p className="text-sm font-black text-primary uppercase tracking-widest animate-pulse">Sincronizando Cloud...</p>
+            <p className="text-[10px] text-slate-400 mt-2">Por favor espere un momento</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) return <LoginForm onLogin={(e, r) => {
     const u = { email: e, role: r };
     setUser(u);
@@ -210,6 +237,7 @@ const App: React.FC = () => {
         onViewChange={(v) => { setView(v); setEditingStudent(null); }}
       />
     }>
+      <ErrorBanner />
       {selectedInscripcion && (
         <PaymentModal
           inscripcion={selectedInscripcion}

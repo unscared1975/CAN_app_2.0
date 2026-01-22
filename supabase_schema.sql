@@ -89,30 +89,45 @@ create table if not exists public.config (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Habilitar RLS (Seguridad a Nivel de Fila) 
--- IMPORTANTE: Para una app simple sin auth, necesitaremos políticas públicas o deshabilitar RLS temporalmente.
--- Aquí creamos políticas para permitir todo (cuidado en producción real, pero ok para prototipo rápido solicitado).
+-- Habilitar RLS y Políticas Públicas (Permisivas)
+-- IMPORTANTE: Ejecuta este bloque completo para asegurar acceso de lectura y escritura
 
+-- 1. Alumnos
 alter table public.alumnos enable row level security;
-create policy "Allow all access" on public.alumnos for all using (true) with check (true);
+drop policy if exists "Public Access Alumnos" on public.alumnos;
+create policy "Public Access Alumnos" on public.alumnos for all using (true) with check (true);
 
+-- 2. Modulos
 alter table public.modulos enable row level security;
-create policy "Allow all access" on public.modulos for all using (true) with check (true);
+drop policy if exists "Public Access Modulos" on public.modulos;
+create policy "Public Access Modulos" on public.modulos for all using (true) with check (true);
 
+-- 3. Horarios
 alter table public.horarios enable row level security;
-create policy "Allow all access" on public.horarios for all using (true) with check (true);
+drop policy if exists "Public Access Horarios" on public.horarios;
+create policy "Public Access Horarios" on public.horarios for all using (true) with check (true);
 
+-- 4. Inscripciones
 alter table public.inscripciones enable row level security;
-create policy "Allow all access" on public.inscripciones for all using (true) with check (true);
+drop policy if exists "Public Access Inscripciones" on public.inscripciones;
+create policy "Public Access Inscripciones" on public.inscripciones for all using (true) with check (true);
 
+-- 5. Pagos
 alter table public.pagos enable row level security;
-create policy "Allow all access" on public.pagos for all using (true) with check (true);
+drop policy if exists "Public Access Pagos" on public.pagos;
+create policy "Public Access Pagos" on public.pagos for all using (true) with check (true);
 
+-- 6. Egresos
 alter table public.egresos enable row level security;
-create policy "Allow all access" on public.egresos for all using (true) with check (true);
+drop policy if exists "Public Access Egresos" on public.egresos;
+create policy "Public Access Egresos" on public.egresos for all using (true) with check (true);
 
+-- 7. Asistencias
 alter table public.asistencias enable row level security;
-create policy "Allow all access" on public.asistencias for all using (true) with check (true);
+drop policy if exists "Public Access Asistencias" on public.asistencias;
+create policy "Public Access Asistencias" on public.asistencias for all using (true) with check (true);
 
+-- 8. Config
 alter table public.config enable row level security;
-create policy "Allow all access" on public.config for all using (true) with check (true);
+drop policy if exists "Public Access Config" on public.config;
+create policy "Public Access Config" on public.config for all using (true) with check (true);

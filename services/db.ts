@@ -89,6 +89,30 @@ let _cacheAsistencias: Asistencia[] = [];
 let _cacheConfig: CentroConfig | null = null;
 let _cacheConceptMem: Record<string, string> | null = null;
 
+// Default Data Constants
+const DEFAULT_MODULOS = [
+  { id: 'm1', nombre: 'Módulo A', total_clases: 12, horas_por_clase: 2, costo_base: 500 },
+  { id: 'm2', nombre: 'Módulo B', total_clases: 8, horas_por_clase: 2, costo_base: 400 },
+  { id: 'm3', nombre: 'Módulo C', total_clases: 8, horas_por_clase: 4, costo_base: 700 },
+  { id: 'm4', nombre: 'Módulo D', total_clases: 20, horas_por_clase: 1, costo_base: 500 },
+];
+
+const DEFAULT_HORARIOS = [
+  { id: 'h1', modulo_id: 'm1', hora_inicio: '10:00', hora_fin: '12:00' },
+  { id: 'h2', modulo_id: 'm1', hora_inicio: '14:00', hora_fin: '16:00' },
+  { id: 'h3', modulo_id: 'm1', hora_inicio: '16:00', hora_fin: '18:00' },
+  { id: 'h4', modulo_id: 'm2', hora_inicio: '10:00', hora_fin: '12:00' },
+  { id: 'h5', modulo_id: 'm2', hora_inicio: '14:00', hora_fin: '16:00' },
+  { id: 'h6', modulo_id: 'm2', hora_inicio: '16:00', hora_fin: '18:00' },
+  { id: 'h7', modulo_id: 'm3', hora_inicio: '14:00', hora_fin: '18:00' },
+  { id: 'h8', modulo_id: 'm4', hora_inicio: '10:00', hora_fin: '11:00' },
+  { id: 'h9', modulo_id: 'm4', hora_inicio: '11:00', hora_fin: '12:00' },
+  { id: 'h10', modulo_id: 'm4', hora_inicio: '14:00', hora_fin: '15:00' },
+  { id: 'h11', modulo_id: 'm4', hora_inicio: '15:00', hora_fin: '16:00' },
+  { id: 'h12', modulo_id: 'm4', hora_inicio: '16:00', hora_fin: '17:00' },
+  { id: 'h13', modulo_id: 'm4', hora_inicio: '17:00', hora_fin: '18:00' },
+];
+
 let _initPromise: Promise<void> | null = null;
 
 export const dbService = {
@@ -121,17 +145,30 @@ export const dbService = {
         ]);
 
         if (alumnosRes.data) _cacheAlumnos = alumnosRes.data.map(mapAlumno);
-        if (modulosRes.data) _cacheModulos = modulosRes.data.map(mapModulo);
-        if (horariosRes.data) _cacheHorarios = horariosRes.data.map(mapHorario);
+
+        // Modulos: Si falla o viene vacío, usar defaults
+        if (modulosRes.data && modulosRes.data.length > 0) {
+          _cacheModulos = modulosRes.data.map(mapModulo);
+        } else {
+          console.log("No se encontraron módulos, usando defaults en memoria...");
+          _cacheModulos = DEFAULT_MODULOS.map(mapModulo);
+          // Intentar sincronizar en segundo plano
+          dbService.seedDefaults().catch(console.error);
+        }
+
+        // Horarios: Igual
+        if (horariosRes.data && horariosRes.data.length > 0) {
+          _cacheHorarios = horariosRes.data.map(mapHorario);
+        } else {
+          _cacheHorarios = DEFAULT_HORARIOS.map(mapHorario);
+        }
+
         if (inscripcionesRes.data) _cacheInscripciones = inscripcionesRes.data.map(mapInscripcion);
         if (pagosRes.data) _cachePagos = pagosRes.data.map(mapPago);
         if (egresosRes.data) _cacheEgresos = egresosRes.data.map(mapEgreso);
         if (asistenciasRes.data) _cacheAsistencias = asistenciasRes.data.map(mapAsistencia);
 
         if (configRes.data && configRes.data.length > 0) {
-          // Assuming config is stored as key-value rows or a single row? 
-          // Implementation of config table was key/value.
-          // Let's assume we store the whole config object in a row with key='main'
           const mainConfig = configRes.data.find((c: any) => c.key === 'main');
           if (mainConfig) _cacheConfig = mainConfig.value;
           else _cacheConfig = DEFAULT_CONFIG;
@@ -139,14 +176,11 @@ export const dbService = {
           _cacheConfig = DEFAULT_CONFIG;
         }
 
-        // Initialize default Modulos if empty (First run)
-        if (_cacheModulos.length === 0) {
-          console.log("Inicializando base de datos con valores por defecto...");
-          await dbService.seedDefaults();
-        }
-
       } catch (e) {
         console.error("Error inicializando DB:", e);
+        // Fallback crítico si falla TODA la conexión (ej: offline timeout)
+        if (_cacheModulos.length === 0) _cacheModulos = DEFAULT_MODULOS.map(mapModulo);
+        if (_cacheHorarios.length === 0) _cacheHorarios = DEFAULT_HORARIOS.map(mapHorario);
       }
     })();
 
@@ -154,36 +188,12 @@ export const dbService = {
   },
 
   seedDefaults: async () => {
-    const modulos = [
-      { id: 'm1', nombre: 'Módulo A', total_clases: 12, horas_por_clase: 2, costo_base: 500 },
-      { id: 'm2', nombre: 'Módulo B', total_clases: 8, horas_por_clase: 2, costo_base: 400 },
-      { id: 'm3', nombre: 'Módulo C', total_clases: 8, horas_por_clase: 4, costo_base: 700 },
-      { id: 'm4', nombre: 'Módulo D', total_clases: 20, horas_por_clase: 1, costo_base: 500 },
-    ];
-    const horarios = [
-      { id: 'h1', modulo_id: 'm1', hora_inicio: '10:00', hora_fin: '12:00' },
-      { id: 'h2', modulo_id: 'm1', hora_inicio: '14:00', hora_fin: '16:00' },
-      { id: 'h3', modulo_id: 'm1', hora_inicio: '16:00', hora_fin: '18:00' },
-      { id: 'h4', modulo_id: 'm2', hora_inicio: '10:00', hora_fin: '12:00' },
-      { id: 'h5', modulo_id: 'm2', hora_inicio: '14:00', hora_fin: '16:00' },
-      { id: 'h6', modulo_id: 'm2', hora_inicio: '16:00', hora_fin: '18:00' },
-      { id: 'h7', modulo_id: 'm3', hora_inicio: '14:00', hora_fin: '18:00' },
-      { id: 'h8', modulo_id: 'm4', hora_inicio: '10:00', hora_fin: '11:00' },
-      { id: 'h9', modulo_id: 'm4', hora_inicio: '11:00', hora_fin: '12:00' },
-      { id: 'h10', modulo_id: 'm4', hora_inicio: '14:00', hora_fin: '15:00' },
-      { id: 'h11', modulo_id: 'm4', hora_inicio: '15:00', hora_fin: '16:00' },
-      { id: 'h12', modulo_id: 'm4', hora_inicio: '16:00', hora_fin: '17:00' },
-      { id: 'h13', modulo_id: 'm4', hora_inicio: '17:00', hora_fin: '18:00' },
-    ];
+    // Upsert to DB
+    await supabase.from('modulos').upsert(DEFAULT_MODULOS);
+    await supabase.from('horarios').upsert(DEFAULT_HORARIOS);
 
-    await supabase.from('modulos').upsert(modulos);
-    await supabase.from('horarios').upsert(horarios);
-
-    // Reload cache
-    const mRes = await supabase.from('modulos').select('*');
-    const hRes = await supabase.from('horarios').select('*');
-    if (mRes.data) _cacheModulos = mRes.data.map(mapModulo);
-    if (hRes.data) _cacheHorarios = hRes.data.map(mapHorario);
+    // Refresh Cache (just in case DB generated IDs, though here IDs are static)
+    // Actually, local constants are enough for this use case.
   },
 
   getInitials: (nombre: string = '', apellido: string = '') => {
@@ -224,7 +234,7 @@ export const dbService = {
     _cacheAlumnos = [..._cacheAlumnos, nuevo];
 
     // DB Update
-    await supabase.from('alumnos').insert({
+    const { error } = await supabase.from('alumnos').insert({
       id,
       nombre: alumno.nombre,
       apellido: alumno.apellido,
@@ -234,6 +244,13 @@ export const dbService = {
       tutor_nombre: alumno.tutorNombre,
       tutor_telefono: alumno.tutorTelefono
     });
+
+    if (error) {
+      console.error("Error saving alumno:", error);
+      // Rollback cache
+      _cacheAlumnos = _cacheAlumnos.filter(a => a.id !== id);
+      throw new Error("No se pudo guardar en la nube. Verifique su conexión o credenciales.");
+    }
 
     return nuevo;
   },
@@ -432,7 +449,7 @@ export const dbService = {
 
     _cacheInscripciones = [..._cacheInscripciones, nueva];
 
-    await supabase.from('inscripciones').insert({
+    const { error } = await supabase.from('inscripciones').insert({
       id,
       alumno_id: nueva.alumnoId,
       modulo_id: nueva.moduloId,
@@ -444,6 +461,13 @@ export const dbService = {
       estado: 'Activo',
       custom_modulo: nueva.customModulo
     });
+
+    if (error) {
+      console.error("Error creating inscripcion:", error);
+      // Rollback cache
+      _cacheInscripciones = _cacheInscripciones.filter(i => i.id !== id);
+      throw new Error("Error guardando inscripción en nube.");
+    }
 
     return nueva;
   },
