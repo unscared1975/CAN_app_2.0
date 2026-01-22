@@ -32,14 +32,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewC
                 </h1>
             </div>
 
-            <ul className="flex md:flex-col justify-around md:justify-start p-2 md:p-6 md:gap-2 w-full">
+            <ul className="flex md:flex-col overflow-x-auto md:overflow-x-visible justify-start md:justify-start gap-3 md:gap-2 p-2 md:p-6 w-full">
                 {navItems.map((item) => (
-                    <li key={item.id} className="w-full">
+                    <li key={item.id} className="min-w-[70px] flex-shrink-0 flex-grow md:flex-grow-0 md:w-full">
                         <button
                             onClick={() => onViewChange(item.id as ViewMode)}
                             className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-4 w-full px-4 py-3 md:rounded-2xl transition-all duration-200 ${currentView === item.id
-                                    ? 'text-primary bg-slate-50 md:bg-primary md:text-white md:shadow-lg shadow-primary/20 scale-105 md:scale-100 border-t-4 md:border-t-0 border-primary'
-                                    : 'text-inactive hover:text-primary hover:bg-slate-50'
+                                ? 'text-primary bg-slate-50 md:bg-primary md:text-white md:shadow-lg shadow-primary/20 scale-105 md:scale-100 border-t-4 md:border-t-0 border-primary'
+                                : 'text-inactive hover:text-primary hover:bg-slate-50'
                                 }`}
                         >
                             <item.icon className={`w-6 h-6 md:w-5 md:h-5 transition-colors ${currentView === item.id && 'text-primary md:text-white'}`} />

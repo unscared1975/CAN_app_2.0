@@ -372,7 +372,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                                   <button onClick={() => setEditingId(null)} className="p-2 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-all"><ICONS.Plus className="w-3.5 h-3.5 rotate-45" /></button>
                                 </div>
                               ) : (
-                                <button onClick={() => startEditing(h)} className="p-2 bg-slate-100 text-primary rounded-lg opacity-0 group-hover:opacity-100 hover:bg-primary hover:text-white transition-all transform hover:scale-105">
+                                <button onClick={() => startEditing(h)} className="p-2 bg-slate-100 text-primary rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-primary hover:text-white transition-all transform hover:scale-105">
                                   <ICONS.Pencil className="w-3.5 h-3.5" />
                                 </button>
                               )}
