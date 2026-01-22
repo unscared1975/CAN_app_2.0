@@ -126,11 +126,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           </div>
 
           <div className="px-[20px] py-[16px] space-y-[8px]">
-            <div className="text-center">
+            <div className="text-center mb-2">
               {isConfirmed && (
-                <p className="text-[18px] font-bold text-[#10B981] uppercase tracking-tighter mb-1 animate-in zoom-in">★ PAGO EXITOSO ★</p>
+                <p className="text-[18px] font-bold text-[#10B981] uppercase tracking-tighter mb-2 animate-in zoom-in">★ PAGO EXITOSO ★</p>
               )}
-              <h4 className="text-[16px] font-semibold text-[#1B3A4B] uppercase truncate leading-tight">
+              <h4 className="text-[16px] font-semibold text-[#1B3A4B] uppercase px-4 leading-normal break-words">
                 {inscripcion.alumno?.nombre} {inscripcion.alumno?.apellido}
               </h4>
             </div>
@@ -159,7 +159,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-[10px] py-[10px] border-y border-[#F1F5F9]">
+            <div className="grid grid-cols-2 gap-[10px] py-[10px] border-y border-[#F1F5F9] mt-2">
               <div className="text-center">
                 <label className="text-[11px] font-medium text-[#4B5563] uppercase block mb-1">F. Operación</label>
                 <div className="text-[13px] font-bold text-[#26475C]">
@@ -177,13 +177,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             <div className="space-y-[8px]">
               <div className={`p-[12px] rounded-[20px] ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
                 <label className="text-[11px] font-medium text-[#4B5563] uppercase block mb-1">Concepto</label>
-                <input value={concepto} readOnly={isConfirmed} onChange={e => setConcepto(e.target.value)} className="bg-transparent w-full text-[13px] font-bold text-[#1B3A4B] outline-none" placeholder="..." />
+                {isConfirmed ? (
+                  <p className="text-[13px] font-bold text-[#1B3A4B] leading-snug break-words">{concepto}</p>
+                ) : (
+                  <input value={concepto} onChange={e => setConcepto(e.target.value)} className="bg-transparent w-full text-[13px] font-bold text-[#1B3A4B] outline-none" placeholder="..." />
+                )}
               </div>
 
               <div className={`p-[12px] rounded-[20px] ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
                 <label className="text-[11px] font-medium text-[#4B5563] uppercase block mb-1">Nota:</label>
                 {isConfirmed ? (
-                  <p className="text-[11px] font-medium italic text-[#4B5563] leading-tight animate-in fade-in">{nota}</p>
+                  <p className="text-[11px] font-medium italic text-[#4B5563] leading-tight animate-in fade-in breakdown-words">{nota}</p>
                 ) : (
                   <textarea
                     value={nota}

@@ -392,7 +392,7 @@ const App: React.FC = () => {
                           )}
                         </td>
                         {view === ViewMode.CUENTAS_COBRAR && (
-                          <td className="px-10 py-6 text-right">
+                          <td className="px-10 py-6 text-right whitespace-nowrap">
                             <span className="font-black text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-100 text-xs">
                               - {deuda} Bs.
                             </span>
