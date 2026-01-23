@@ -554,17 +554,17 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               <div className="bg-emerald-600 text-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl relative overflow-hidden group">
                 <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Ingresos Filtrados (+)</p>
-                <p className="text-2xl md:text-3xl font-black">{financialSummary.totalIngresos} Bs.</p>
+                <p className="text-2xl md:text-3xl font-black">{financialSummary.totalIngresos.toFixed(2)} Bs.</p>
                 <div className="absolute -right-4 -bottom-4 opacity-10"><ICONS.CurrencyDollar className="w-20 h-20" /></div>
               </div>
               <div className="bg-red-600 text-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl relative overflow-hidden group">
                 <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Egresos Operativos (-)</p>
-                <p className="text-2xl md:text-3xl font-black">{financialSummary.totalEgresos} Bs.</p>
+                <p className="text-2xl md:text-3xl font-black">{financialSummary.totalEgresos.toFixed(2)} Bs.</p>
                 <div className="absolute -right-4 -bottom-4 opacity-10"><ICONS.TrendDown className="w-20 h-20" /></div>
               </div>
               <div className="bg-primary text-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                 <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Saldo Neto Resultante (=)</p>
-                <p className="text-3xl md:text-4xl font-black">{financialSummary.saldoNeto} Bs.</p>
+                <p className="text-3xl md:text-4xl font-black">{financialSummary.saldoNeto.toFixed(2)} Bs.</p>
                 <div className="absolute -right-4 -bottom-4 opacity-10"><ICONS.Dashboard className="w-20 h-20" /></div>
               </div>
             </div>
@@ -630,11 +630,11 @@ const App: React.FC = () => {
                                 {item.type === 'ingreso' && item.statusPago && (
                                   <div className="mt-1.5 flex items-center gap-2">
                                     <span className="px-2 py-0.5 bg-slate-100 rounded text-[9px] font-bold text-slate-500">
-                                      Total: {item.statusPago.costo} Bs
+                                      Total: {item.statusPago.costo.toFixed(2)} Bs
                                     </span>
                                     {item.statusPago.deuda > 0 ? (
                                       <span className="px-2 py-0.5 bg-red-50 rounded text-[9px] font-bold text-red-500 border border-red-100">
-                                        Resta: {item.statusPago.deuda} Bs
+                                        Resta: {item.statusPago.deuda.toFixed(2)} Bs
                                       </span>
                                     ) : (
                                       <span className="px-2 py-0.5 bg-emerald-50 rounded text-[9px] font-bold text-emerald-600 border border-emerald-100">
@@ -650,7 +650,7 @@ const App: React.FC = () => {
                             <span className="px-3 py-1 bg-slate-100 rounded-lg text-[9px] font-black text-primary uppercase">{item.metodo}</span>
                           </td>
                           <td className={`px-8 py-5 text-right font-black text-base ${item.type === 'ingreso' ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {item.type === 'ingreso' ? '+' : '-'}{item.monto} Bs.
+                            {item.type === 'ingreso' ? '+' : '-'}{Number(item.monto).toFixed(2)} Bs.
                           </td>
                         </tr>
                       ))
@@ -660,17 +660,20 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
-        {view === ViewMode.DASHBOARD && (
-          <div className="space-y-6 md:space-y-12 px-2 md:px-0">
-            <DashboardStats inscripciones={dbService.getInscripcionesActivas()} pagos={dbService.getPagos()} asistencias={dbService.getAsistencias()} />
-            <GeminiAssistant inscripciones={inscripciones} attendance={dbService.getAsistencias()} />
-          </div>
-        )}
+        )
+        }
+        {
+          view === ViewMode.DASHBOARD && (
+            <div className="space-y-6 md:space-y-12 px-2 md:px-0">
+              <DashboardStats inscripciones={dbService.getInscripcionesActivas()} pagos={dbService.getPagos()} asistencias={dbService.getAsistencias()} />
+              <GeminiAssistant inscripciones={inscripciones} attendance={dbService.getAsistencias()} />
+            </div>
+          )
+        }
         {view === ViewMode.CONFIGURACION && <SettingsManager />}
-      </div>
+      </div >
       {showReportModal && <FinancialReportModal onClose={() => setShowReportModal(false)} />}
-    </Layout>
+    </Layout >
   );
 };
 

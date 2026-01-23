@@ -1,6 +1,6 @@
 
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { Inscripcion, Asistencia, Pago, Alumno } from '../types';
 import { dbService } from './db';
 
@@ -12,6 +12,19 @@ const cleanFileName = (text: string) => {
     .replace(/[^a-zA-Z0-9_]/g, "");
 };
 
+const loadImage = (url: string): Promise<HTMLImageElement | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${url}`);
+      resolve(null);
+    };
+  });
+};
+
 export const reportService = {
   getSuggestedFileName: (inscripcion: Inscripcion) => {
     const alumnoNombre = cleanFileName(`${inscripcion.alumno?.nombre || 'Alumno'}_${inscripcion.alumno?.apellido || ''}`);
@@ -19,19 +32,26 @@ export const reportService = {
     return `Asistencias_${alumnoNombre}_${moduloNombre}.pdf`;
   },
 
-  generateProgressReport: (inscripcion: Inscripcion, historial: Asistencia[]) => {
+  generateProgressReport: async (inscripcion: Inscripcion, historial: Asistencia[]) => {
     const doc = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = [38, 71, 92]; // #26475C (Azul Primario)
-    const steelBluePale = [241, 245, 249]; // Gris acero muy tenue/pálido para armonizar
+    const primaryColor: [number, number, number] = [38, 71, 92]; // #26475C (Azul Primario)
+    const steelBluePale: [number, number, number] = [241, 245, 249]; // Gris acero muy tenue/pálido para armonizar
 
     // --- Encabezado ---
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 35, 'F');
 
     try {
-      doc.addImage('https://i.ibb.co/Tx5HVnZ9/LOGO-CAN-Sin-texto-30-X30.png', 'PNG', 10, 2.5, 30, 30);
-      doc.addImage('https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png', 'PNG', 170, 2.5, 30, 30);
-    } catch (e) { }
+      const [logo1, logo2] = await Promise.all([
+        loadImage('https://i.ibb.co/NghBQCRx/LOGO-CAN-Sin-texto-1200-X1200.png'),
+        loadImage('https://i.ibb.co/FkkZ8p5t/LOGO-CAN-1200-X1200-Circulo.png')
+      ]);
+
+      if (logo1) doc.addImage(logo1, 'PNG', 10, 2.5, 30, 30);
+      if (logo2) doc.addImage(logo2, 'PNG', 170, 2.5, 30, 30);
+    } catch (e) {
+      console.warn("Error adding images to PDF", e);
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
@@ -96,7 +116,7 @@ export const reportService = {
     // --- Tabla de Asistencias (Ultra Compacta) ---
     const historialOrdenado = [...historial].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 90,
       head: [['Fecha', 'Estado', 'Observaciones de Avance']],
       body: historialOrdenado.map(a => [
@@ -126,7 +146,7 @@ export const reportService = {
 
   generateCashReport: (pagosGrouped: { alumno: Alumno, pagos: Pago[] }[], total: number) => {
     const doc = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = [38, 71, 92];
+    const primaryColor: [number, number, number] = [38, 71, 92];
 
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 35, 'F');
@@ -156,7 +176,7 @@ export const reportService = {
       doc.line(15, currentY, 195, currentY);
       currentY += 5;
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: currentY,
         head: [['Recibo', 'Fecha', 'Concepto', 'Método', 'Monto']],
         body: group.pagos.map(p => [
@@ -193,7 +213,7 @@ export const reportService = {
 
   generateFinancialReport: (datos: { fecha: string, tutor: string, metodo: string, alumno: string, monto: number }[], tituloRango: string, totalGeneral: number) => {
     const doc = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = [38, 71, 92];
+    const primaryColor: [number, number, number] = [38, 71, 92];
 
     // Header
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -212,7 +232,7 @@ export const reportService = {
     doc.text(tituloRango.toUpperCase(), 105, 28, { align: 'center' });
 
     // Table
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 45,
       head: [['FECHA', 'TUTOR', 'MÉTODO', 'ALUMNO', 'MONTO']],
       body: datos.map(d => [
@@ -247,7 +267,7 @@ export const reportService = {
 
   generateExpenditureReport: (datos: { fecha: string, categoria: string, descripcion: string, monto: number }[], tituloRango: string, totalGeneral: number) => {
     const doc = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = [220, 38, 38]; // Rojo para Egresos
+    const primaryColor: [number, number, number] = [220, 38, 38]; // Rojo para Egresos
 
     // Header
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -266,7 +286,7 @@ export const reportService = {
     doc.text(tituloRango.toUpperCase(), 105, 28, { align: 'center' });
 
     // Table
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 45,
       head: [['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO']],
       body: datos.map(d => [

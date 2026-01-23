@@ -21,6 +21,14 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
   const [status, setStatus] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ fecha: string, categoria: EgresoCategory, monto: string, descripcion: string }>({
+    fecha: '',
+    categoria: 'Otros',
+    monto: '',
+    descripcion: ''
+  });
+
   const categories: EgresoCategory[] = ['Sueldos', 'Alquiler', 'Materiales', 'Pago de Servicios', 'Otros'];
 
   const egresos = useMemo(() => {
@@ -68,6 +76,42 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
     }
   };
 
+  const startEditing = (e: Egreso) => {
+    setEditingId(e.id);
+    setEditForm({
+      fecha: e.fecha,
+      categoria: e.categoria as EgresoCategory,
+      monto: String(e.monto),
+      descripcion: e.descripcion
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    if (!editForm.monto || Number(editForm.monto) <= 0) return alert("Ingrese un monto válido");
+    if (!editForm.descripcion) return alert("Ingrese una descripción");
+
+    try {
+      await dbService.editarEgreso({
+        id: editingId,
+        fecha: editForm.fecha,
+        categoria: editForm.categoria,
+        monto: Number(editForm.monto),
+        descripcion: editForm.descripcion
+      });
+      setEditingId(null);
+      setStatus({ msg: 'Gasto actualizado correctamente', type: 'success' });
+      setTimeout(() => setStatus(null), 3000);
+      onUpdate();
+    } catch (e: any) {
+      alert("Error al actualizar gasto");
+    }
+  };
+
   return (
     <div className="space-y-6 md:space-y-10 max-w-[1200px] mx-auto animate-in fade-in duration-500 px-2 md:px-0">
       {status && (
@@ -90,7 +134,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
         <div className="bg-emerald-50/50 p-5 rounded-[2rem] border border-emerald-100 relative overflow-hidden group hover:bg-emerald-50 transition-colors">
           <div className="relative z-10">
             <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1 opacity-70">Ingresos Totales (+)</p>
-            <p className="text-2xl font-black text-emerald-800">{totalIngresos} Bs.</p>
+            <p className="text-2xl font-black text-emerald-800">{totalIngresos.toFixed(2)} Bs.</p>
           </div>
           <div className="absolute -right-3 -bottom-3 text-emerald-500/10 group-hover:text-emerald-500/20 transition-colors">
             <ICONS.CurrencyDollar className="w-16 h-16" />
@@ -100,7 +144,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
         <div className="bg-red-50/50 p-5 rounded-[2rem] border border-red-100 relative overflow-hidden group hover:bg-red-50 transition-colors">
           <div className="relative z-10">
             <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 opacity-70">Egresos Filtrados (-)</p>
-            <p className="text-2xl font-black text-red-800">{totalEgresosVal} Bs.</p>
+            <p className="text-2xl font-black text-red-800">{totalEgresosVal.toFixed(2)} Bs.</p>
           </div>
           <div className="absolute -right-3 -bottom-3 text-red-500/10 group-hover:text-red-500/20 transition-colors">
             <ICONS.TrendDown className="w-16 h-16" />
@@ -110,7 +154,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
         <div className="bg-white p-5 rounded-[2rem] border border-slate-200 relative overflow-hidden group shadow-sm">
           <div className="relative z-10">
             <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1 opacity-70">Saldo Neto Actual (=)</p>
-            <p className="text-2xl font-black text-primary">{saldoNeto} Bs.</p>
+            <p className="text-2xl font-black text-primary">{saldoNeto.toFixed(2)} Bs.</p>
           </div>
           <div className="absolute -right-3 -bottom-3 text-primary/5 group-hover:text-primary/10 transition-colors">
             <ICONS.Dashboard className="w-16 h-16" />
@@ -196,15 +240,68 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                     <tr><td colSpan={5} className="py-20 text-center text-inactive uppercase text-[10px] font-black tracking-widest opacity-50 italic">No hay egresos registrados</td></tr>
                   ) : (
                     filteredEgresos.map(e => (
-                      <tr key={e.id} className="hover:bg-red-50/30 transition-colors group">
-                        <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">{dbService.formatDateDisplay(e.fecha)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-red-100">{e.categoria}</span>
+                      <tr key={e.id} className={`hover:bg-red-50/30 transition-colors group ${editingId === e.id ? 'bg-red-50/50' : ''}`}>
+                        <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
+                          {editingId === e.id ? (
+                            <input
+                              type="date"
+                              value={editForm.fecha}
+                              onChange={ev => setEditForm({ ...editForm, fecha: ev.target.value })}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            />
+                          ) : (
+                            dbService.formatDateDisplay(e.fecha)
+                          )}
                         </td>
-                        <td className="px-6 py-4 text-xs font-black text-primary uppercase leading-tight">{e.descripcion}</td>
-                        <td className="px-6 py-4 text-right text-red-600 font-black whitespace-nowrap">-{e.monto} Bs.</td>
-                        <td className="px-6 py-4 text-right">
-                          <button onClick={() => handleDelete(e.id)} className="p-2 text-inactive hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"><ICONS.Plus className="w-5 h-5 rotate-45" /></button>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingId === e.id ? (
+                            <select
+                              value={editForm.categoria}
+                              onChange={ev => setEditForm({ ...editForm, categoria: ev.target.value as EgresoCategory })}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            >
+                              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                          ) : (
+                            <span className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-red-100">{e.categoria}</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-xs font-medium text-primary uppercase leading-tight w-full">
+                          {editingId === e.id ? (
+                            <input
+                              type="text"
+                              value={editForm.descripcion}
+                              onChange={ev => setEditForm({ ...editForm, descripcion: ev.target.value })}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            />
+                          ) : (
+                            e.descripcion
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right text-red-600 font-black whitespace-nowrap">
+                          {editingId === e.id ? (
+                            <input
+                              type="number"
+                              value={editForm.monto}
+                              onChange={ev => setEditForm({ ...editForm, monto: ev.target.value })}
+                              className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-[10px] text-right"
+                            />
+                          ) : (
+                            `-${Number(e.monto).toFixed(2)} Bs.`
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          {editingId === e.id ? (
+                            <div className="flex justify-end gap-1">
+                              <button onClick={handleUpdate} className="p-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700"><ICONS.Check className="w-3.5 h-3.5" /></button>
+                              <button onClick={cancelEditing} className="p-1.5 bg-slate-400 text-white rounded hover:bg-slate-500"><ICONS.Plus className="w-3.5 h-3.5 rotate-45" /></button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                              <button onClick={() => startEditing(e)} className="p-2 text-inactive hover:text-primary"><ICONS.Pencil className="w-4 h-4" /></button>
+                              <button onClick={() => handleDelete(e.id)} className="p-2 text-inactive hover:text-red-600"><ICONS.Plus className="w-5 h-5 rotate-45" /></button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -219,10 +316,10 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                 <div key={e.id} className="p-5 active:bg-red-50 transition-colors flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black text-red-600 uppercase tracking-widest">{e.categoria}</p>
-                    <h4 className="text-sm font-black text-primary uppercase leading-tight mt-1">{e.descripcion}</h4>
+                    <h4 className="text-sm font-medium text-primary uppercase leading-tight mt-1">{e.descripcion}</h4>
                     <p className="text-[9px] font-bold text-inactive mt-1 uppercase">{dbService.formatDateDisplay(e.fecha)}</p>
                   </div>
-                  <p className="text-base font-black text-red-600">-{e.monto} Bs.</p>
+                  <p className="text-base font-black text-red-600">-{Number(e.monto).toFixed(2)} Bs.</p>
                 </div>
               ))}
             </div>

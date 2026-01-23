@@ -29,12 +29,12 @@ export const receiptService = {
     doc.rect(0, 0, 210, 35, 'F');
 
     try {
-      const logoLeftUrl = 'https://i.ibb.co/Tx5HVnZ9/LOGO-CAN-Sin-texto-30-X30.png';
+      const logoLeftUrl = 'https://i.ibb.co/NghBQCRx/LOGO-CAN-Sin-texto-1200-X1200.png';
       doc.addImage(logoLeftUrl, 'PNG', 10, 2.5, 30, 30);
     } catch (e) { console.warn("Error logo izquierdo:", e); }
 
     try {
-      const logoRightUrl = 'https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png';
+      const logoRightUrl = 'https://i.ibb.co/FkkZ8p5t/LOGO-CAN-1200-X1200-Circulo.png';
       doc.addImage(logoRightUrl, 'PNG', 170, 2.5, 30, 30);
     } catch (e) { console.warn("Error logo derecho:", e); }
 
@@ -63,7 +63,7 @@ export const receiptService = {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('INFORMACIÓN DEL ALUMNO', 20, 72.5);
-    
+
     doc.setFontSize(9);
     let y = 82;
     const fields = [

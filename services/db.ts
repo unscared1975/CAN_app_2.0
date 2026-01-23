@@ -304,6 +304,24 @@ export const dbService = {
     await supabase.from('egresos').delete().eq('id', id);
   },
 
+  editarEgreso: async (egreso: Egreso) => {
+    const idx = _cacheEgresos.findIndex(e => e.id === egreso.id);
+    if (idx !== -1) {
+      _cacheEgresos[idx] = { ...egreso, monto: Number(egreso.monto) };
+      _cacheEgresos = [..._cacheEgresos];
+
+      await supabase.from('egresos').update({
+        monto: egreso.monto,
+        fecha: egreso.fecha,
+        categoria: egreso.categoria,
+        descripcion: egreso.descripcion
+      }).eq('id', egreso.id);
+
+      return _cacheEgresos[idx];
+    }
+    return null;
+  },
+
   getLastAttendanceDate: (inscripcionId: string): string | null => {
     const inscAsist = _cacheAsistencias
       .filter(a => a.inscripcionId === inscripcionId)

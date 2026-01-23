@@ -81,6 +81,20 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
     }
   };
 
+  const handleDownloadHistory = async () => {
+    if (!selectedInscripcion) return;
+    try {
+      const doc = await reportService.generateProgressReport(selectedInscripcion, historialSeleccionado);
+      doc.save(reportService.getSuggestedFileName(selectedInscripcion));
+      setStatus({ msg: 'Historial descargado correctamente', type: 'success' });
+      setTimeout(() => setStatus(null), 3000);
+    } catch (e: any) {
+      console.error("Error generando PDF:", e);
+      setStatus({ msg: 'Error al generar PDF: ' + (e.message || 'Desconocido'), type: 'error' });
+      setTimeout(() => setStatus(null), 5000);
+    }
+  };
+
   const isModuleFinished = selectedInscripcion?.saldoClases === 0;
 
   return (
@@ -111,8 +125,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
               <ICONS.Plus className="w-4 h-4" /> {isModuleFinished ? 'Clases Agotadas' : 'Registrar Avance'}
             </button>
             <button
-              onClick={() => reportService.generateProgressReport(selectedInscripcion, historialSeleccionado).save(reportService.getSuggestedFileName(selectedInscripcion))}
-              className="px-8 py-3.5 bg-white border border-slate-200 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3 shadow-sm"
+              onClick={handleDownloadHistory}
+              className="px-8 py-3.5 bg-white border border-slate-200 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:shadow-md hover:border-slate-300 transition-all flex items-center gap-3 shadow-sm active:scale-95"
             >
               <ICONS.Download className="w-4 h-4" /> Descargar Historial
             </button>
@@ -218,9 +232,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
 
               {selectedInscripcion && (
                 <div className="animate-in zoom-in-95 duration-300">
-                  <div className={`p-10 rounded-[2.5rem] shadow-xl text-center relative overflow-hidden group mb-8 transition-colors ${isModuleFinished ? 'bg-slate-700' : 'bg-primary'}`}>
+                  <div className={`p-6 md:p-10 rounded-[2.5rem] shadow-xl text-center relative overflow-hidden group mb-6 md:mb-8 transition-colors ${isModuleFinished ? 'bg-slate-700' : 'bg-primary'}`}>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-                    <div className="w-20 h-20 rounded-[1.5rem] bg-white/20 flex items-center justify-center border-2 border-white/20 shadow-2xl mx-auto mb-6">
+                    <div className="w-20 h-20 rounded-[1.5rem] bg-white/20 hidden md:flex items-center justify-center border-2 border-white/20 shadow-2xl mx-auto mb-6">
                       <span className="text-white font-black text-xl tracking-widest">{dbService.getInitials(selectedInscripcion.alumno?.nombre, selectedInscripcion.alumno?.apellido)}</span>
                     </div>
                     <h4 className="text-xl font-black tracking-tighter mb-1 uppercase leading-none text-white">{selectedInscripcion.alumno?.nombre} {selectedInscripcion.alumno?.apellido}</h4>
@@ -230,7 +244,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                       <p className="text-[11px] font-black uppercase tracking-widest mt-4 animate-ez-flicker">MÓDULO FINALIZADO</p>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4 border-t border-white/10 mt-8 pt-8 text-white">
+                    <div className="grid grid-cols-2 gap-2 md:gap-4 border-t border-white/10 mt-4 md:mt-8 pt-4 md:pt-8 text-white">
                       <div className="text-center">
                         <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">Total Ciclo</p>
                         <p className="text-xl font-black">{selectedInscripcion.modulo?.totalClases}</p>
@@ -250,9 +264,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                       className={`w-full py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 ${isModuleFinished ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-slate-700'
                         }`}
                     >
-                      <ICONS.Plus className="w-5 h-5" /> {isModuleFinished ? 'Clases Agotadas' : 'Registrar Avance'}
+                      <ICONS.Plus className="w-5 h-5" /> {isModuleFinished ? 'Clases Agotadas' : 'Registrar Clase'}
                     </button>
-                    <button onClick={() => reportService.generateProgressReport(selectedInscripcion, historialSeleccionado).save(reportService.getSuggestedFileName(selectedInscripcion))} className="w-full py-5 bg-slate-100 text-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3">
+                    <button onClick={handleDownloadHistory} className="w-full py-5 bg-slate-100 text-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md active:scale-95">
                       <ICONS.Download className="w-5 h-5" /> Descargar Historial
                     </button>
                   </div>
@@ -276,7 +290,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                   {isModuleFinished ? (
                     <span className="px-5 py-2 bg-red-50 text-[10px] font-black text-red-600 rounded-full uppercase tracking-widest border border-red-100 animate-ez-flicker">MÓDULO FINALIZADO</span>
                   ) : (
-                    <span className="px-5 py-2 bg-slate-50 text-[10px] font-black text-inactive rounded-full uppercase tracking-widest border border-slate-100">Ciclo Activo</span>
+                    <span className="px-5 py-2 bg-slate-50 text-[10px] font-black text-inactive rounded-full uppercase tracking-widest border border-slate-100">Modulo Activo</span>
                   )}
                 </div>
 
