@@ -133,7 +133,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ modulos, hor
       : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
 
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 px-2 md:px-0">
+    <div className="w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 px-2 md:px-0">
       <form onSubmit={handleSubmit} className="bg-white p-4 md:p-8 rounded-[2rem] border border-slate-100 shadow-xl space-y-4 md:space-y-6">
 
         {/* Header */}

@@ -243,6 +243,7 @@ const App: React.FC = () => {
           inscripcion={selectedInscripcion}
           onClose={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); }}
           onSuccess={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); setView(ViewMode.PAGOS); loadData(); }}
+          pagoToEdit={pagoToEdit}
         />
       )}
 
@@ -253,7 +254,7 @@ const App: React.FC = () => {
       )}
 
       {showGlobalSearch && (
-        <div className="mb-4 md:mb-8 max-w-[1200px] mx-auto animate-in fade-in duration-300">
+        <div className="mb-4 md:mb-8 w-full animate-in fade-in duration-300">
           <div className="hidden md:flex items-center gap-3 bg-white p-3.5 rounded-[2rem] border border-slate-100 shadow-xl group focus-within:ring-4 ring-primary/5 transition-all">
             <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-inactive group-focus-within:text-primary group-focus-within:bg-primary/5 transition-all">
               <ICONS.Users className="w-5 h-5" />
@@ -296,7 +297,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="mb-6 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 max-w-[1200px] mx-auto px-2 md:px-0">
+      <header className="mb-6 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full px-2 md:px-0">
         <div className="hidden md:block">
           <h2 className="text-4xl font-black text-primary tracking-tighter uppercase leading-none mb-2">{currentTitle}</h2>
           <p className="text-xs font-bold text-inactive uppercase tracking-[0.2em]">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
@@ -314,7 +315,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <div className="max-w-[1200px] mx-auto">
+      <div className="w-full">
         {view === ViewMode.REGISTRO && <RegistrationForm modulos={modulos} horarios={horarios} onSubmit={handleRegistration} initialData={editingStudent || undefined} />}
 
         {(view === ViewMode.ALUMNOS || view === ViewMode.CUENTAS_COBRAR) && (
@@ -603,7 +604,7 @@ const App: React.FC = () => {
                           }}
                           className={`hover:bg-slate-50 transition-colors ${item.type === 'ingreso' ? 'cursor-pointer hover:bg-emerald-50/30' : ''}`}
                         >
-                          <td className="px-8 py-5 text-xs font-bold text-slate-500">{dbService.formatDateDisplay(item.fecha)}</td>
+                          <td className="px-8 py-5 text-xs font-bold text-slate-500 whitespace-nowrap">{dbService.formatDateDisplay(item.fecha)}</td>
 
                           {/* COLUMNA TUTOR / ALUMNO */}
                           <td className="px-8 py-5">

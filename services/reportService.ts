@@ -152,8 +152,8 @@ export const reportService = {
     doc.rect(0, 0, 210, 35, 'F');
 
     try {
-      doc.addImage('https://i.ibb.co/Tx5HVnZ9/LOGO-CAN-Sin-texto-30-X30.png', 'PNG', 10, 2.5, 30, 30);
-      doc.addImage('https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png', 'PNG', 170, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/NghBQCRx/LOGO-CAN-Sin-texto-1200-X1200.png', 'PNG', 10, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/FkkZ8p5t/LOGO-CAN-1200-X1200-Circulo.png', 'PNG', 170, 2.5, 30, 30);
     } catch (e) { }
 
     doc.setTextColor(255, 255, 255);
@@ -220,8 +220,8 @@ export const reportService = {
     doc.rect(0, 0, 210, 35, 'F');
 
     try {
-      doc.addImage('https://i.ibb.co/Tx5HVnZ9/LOGO-CAN-Sin-texto-30-X30.png', 'PNG', 10, 2.5, 30, 30);
-      doc.addImage('https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png', 'PNG', 170, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/NghBQCRx/LOGO-CAN-Sin-texto-1200-X1200.png', 'PNG', 10, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/FkkZ8p5t/LOGO-CAN-1200-X1200-Circulo.png', 'PNG', 170, 2.5, 30, 30);
     } catch (e) { }
 
     doc.setTextColor(255, 255, 255);
@@ -274,8 +274,8 @@ export const reportService = {
     doc.rect(0, 0, 210, 35, 'F');
 
     try {
-      doc.addImage('https://i.ibb.co/Tx5HVnZ9/LOGO-CAN-Sin-texto-30-X30.png', 'PNG', 10, 2.5, 30, 30);
-      doc.addImage('https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png', 'PNG', 170, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/NghBQCRx/LOGO-CAN-Sin-texto-1200-X1200.png', 'PNG', 10, 2.5, 30, 30);
+      doc.addImage('https://i.ibb.co/FkkZ8p5t/LOGO-CAN-1200-X1200-Circulo.png', 'PNG', 170, 2.5, 30, 30);
     } catch (e) { }
 
     doc.setTextColor(255, 255, 255);

@@ -18,14 +18,14 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ inscripciones,
     try {
       // Use named parameter for apiKey exclusively from process.env.API_KEY
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
+
       const analysisData = `
-        Estado de Inscripciones Actuales: ${JSON.stringify(inscripciones.map(i => ({ 
-          nombre: `${i.alumno?.nombre} ${i.alumno?.apellido}`,
-          modulo: i.modulo?.nombre,
-          clasesRestantes: i.saldoClases,
-          estado: i.estado
-        })))}
+        Estado de Inscripciones Actuales: ${JSON.stringify(inscripciones.map(i => ({
+        nombre: `${i.alumno?.nombre} ${i.alumno?.apellido}`,
+        modulo: i.modulo?.nombre,
+        clasesRestantes: i.saldoClases,
+        estado: i.estado
+      })))}
         Resumen de Asistencias Recientes: ${JSON.stringify(attendance.slice(-15))}
       `;
 
@@ -49,7 +49,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ inscripciones,
   };
 
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full mx-auto animate-in fade-in zoom-in-95 duration-500">
       <div className="flex items-center gap-4 mb-8">
         <div className="p-4 bg-primary rounded-[1.5rem] shadow-lg shadow-primary/20">
           <ICONS.Sparkles className="w-8 h-8 text-white" />
@@ -59,7 +59,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ inscripciones,
           <p className="text-[10px] font-black text-inactive uppercase tracking-[0.2em]">Powered by Gemini 3 Pro AI Engine</p>
         </div>
       </div>
-      
+
       {!insight && !loading && (
         <div className="text-center py-12 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
           <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto font-medium leading-relaxed">
@@ -98,7 +98,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ inscripciones,
           </div>
           <div className="mt-8 flex justify-between items-center">
             <p className="text-[9px] font-bold text-inactive uppercase tracking-widest italic">* El análisis se basa en datos actuales del sistema.</p>
-            <button 
+            <button
               onClick={() => setInsight(null)}
               className="px-6 py-2 bg-slate-100 text-primary rounded-xl text-[10px] font-black uppercase tracking-tighter hover:bg-slate-200 transition-colors"
             >

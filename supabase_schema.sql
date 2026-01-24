@@ -65,6 +65,7 @@ create table if not exists public.pagos (
 -- Tabla: egresos
 create table if not exists public.egresos (
   id uuid primary key default gen_random_uuid(),
+  nro_factura text,
   monto numeric not null,
   fecha text not null,
   categoria text not null,

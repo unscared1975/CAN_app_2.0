@@ -59,7 +59,8 @@ const mapEgreso = (e: any): Egreso => ({
   monto: e.monto,
   fecha: e.fecha,
   categoria: e.categoria,
-  descripcion: e.descripcion
+  descripcion: e.descripcion,
+  nroFactura: e.nro_factura
 });
 
 const mapAsistencia = (a: any): Asistencia => ({
@@ -122,8 +123,6 @@ export const dbService = {
 
     _initPromise = (async () => {
       try {
-
-
         const [
           alumnosRes,
           modulosRes,
@@ -191,9 +190,6 @@ export const dbService = {
     // Upsert to DB
     await supabase.from('modulos').upsert(DEFAULT_MODULOS);
     await supabase.from('horarios').upsert(DEFAULT_HORARIOS);
-
-    // Refresh Cache (just in case DB generated IDs, though here IDs are static)
-    // Actually, local constants are enough for this use case.
   },
 
   getInitials: (nombre: string = '', apellido: string = '') => {
@@ -223,17 +219,10 @@ export const dbService = {
   getAlumnos: (): Alumno[] => _cacheAlumnos,
 
   saveAlumno: async (alumno: Omit<Alumno, 'id'>) => {
-    // Generate ID client-side strictly? Supabase defaults to gen_random_uuid().
-    // But we need the ID immediately for cache.
-    // Let's use supabase.rpc or just upsert without ID if we want DB to generate?
-    // Better: let's generate it locally to be consistent.
     const id = crypto.randomUUID();
     const nuevo: Alumno = { ...alumno, id };
-
-    // Cache Update
     _cacheAlumnos = [..._cacheAlumnos, nuevo];
 
-    // DB Update
     const { error } = await supabase.from('alumnos').insert({
       id,
       nombre: alumno.nombre,
@@ -247,11 +236,9 @@ export const dbService = {
 
     if (error) {
       console.error("Error saving alumno:", error);
-      // Rollback cache
       _cacheAlumnos = _cacheAlumnos.filter(a => a.id !== id);
       throw new Error("No se pudo guardar en la nube. Verifique su conexión o credenciales.");
     }
-
     return nuevo;
   },
 
@@ -259,7 +246,7 @@ export const dbService = {
     const idx = _cacheAlumnos.findIndex(a => a.id === alumno.id);
     if (idx !== -1) {
       _cacheAlumnos[idx] = { ..._cacheAlumnos[idx], ...alumno };
-      _cacheAlumnos = [..._cacheAlumnos]; // trigger ref change if needed
+      _cacheAlumnos = [..._cacheAlumnos];
 
       await supabase.from('alumnos').update({
         nombre: alumno.nombre,
@@ -293,7 +280,8 @@ export const dbService = {
       monto: nuevo.monto,
       fecha: nuevo.fecha,
       categoria: nuevo.categoria,
-      descripcion: nuevo.descripcion
+      descripcion: nuevo.descripcion,
+      nro_factura: nuevo.nroFactura
     });
 
     return nuevo;
@@ -314,7 +302,8 @@ export const dbService = {
         monto: egreso.monto,
         fecha: egreso.fecha,
         categoria: egreso.categoria,
-        descripcion: egreso.descripcion
+        descripcion: egreso.descripcion,
+        nro_factura: egreso.nroFactura
       }).eq('id', egreso.id);
 
       return _cacheEgresos[idx];
@@ -332,8 +321,6 @@ export const dbService = {
   saveLastConcept: (alumnoId: string, concepto: string) => {
     if (!_cacheConceptMem) _cacheConceptMem = {};
     _cacheConceptMem[alumnoId] = concepto;
-    // Not critical, maybe save to localStorage only? Or distinct table?
-    // Let's keep it localStorage for now as it's UI preference
     try {
       localStorage.setItem('can_v2_concept_mem', JSON.stringify(_cacheConceptMem));
     } catch { }
@@ -439,7 +426,6 @@ export const dbService = {
       totalClases = modulo.totalClases;
     }
 
-    // Inactivar anteriores
     const updatesPromises: any[] = [];
     _cacheInscripciones.forEach((i, index) => {
       if (i.alumnoId === insc.alumnoId && i.estado === 'Activo') {
@@ -482,11 +468,9 @@ export const dbService = {
 
     if (error) {
       console.error("Error creating inscripcion:", error);
-      // Rollback cache
       _cacheInscripciones = _cacheInscripciones.filter(i => i.id !== id);
       throw new Error("Error guardando inscripción en nube.");
     }
-
     return nueva;
   },
 
@@ -543,9 +527,8 @@ export const dbService = {
     const existenteIdx = _cacheAsistencias.findIndex(a => a.inscripcionId === inscripcionId && a.fecha === fecha);
 
     if (existenteIdx !== -1) {
-      // Update existing
       const anterior = _cacheAsistencias[existenteIdx].estado;
-      if (anterior === 'P' || anterior === 'F') _cacheInscripciones[iIdx].saldoClases += 1; // Refund class
+      if (anterior === 'P' || anterior === 'F') _cacheInscripciones[iIdx].saldoClases += 1;
 
       _cacheAsistencias[existenteIdx].estado = estado;
       _cacheAsistencias[existenteIdx].observacion = observacion;
@@ -556,7 +539,6 @@ export const dbService = {
       }).eq('id', _cacheAsistencias[existenteIdx].id);
 
     } else {
-      // Insert new
       const id = crypto.randomUUID();
       _cacheAsistencias.push({ id, inscripcionId, fecha, estado, observacion });
 
@@ -569,19 +551,17 @@ export const dbService = {
       });
     }
 
-    // Deduct class if valid attendance
     if (estado === 'P' || estado === 'F') {
       if (_cacheInscripciones[iIdx].saldoClases > 0) {
         _cacheInscripciones[iIdx].saldoClases -= 1;
       }
     }
 
-    // Sync inscripcion saldo
     await supabase.from('inscripciones').update({
       saldo_clases: _cacheInscripciones[iIdx].saldoClases
     }).eq('id', _cacheInscripciones[iIdx].id);
 
-    _cacheInscripciones = [..._cacheInscripciones]; // trigger update
+    _cacheInscripciones = [..._cacheInscripciones];
     _cacheAsistencias = [..._cacheAsistencias];
 
     return _cacheInscripciones[iIdx];
@@ -605,7 +585,6 @@ export const dbService = {
     const iIdx = _cacheInscripciones.findIndex(i => i.id === _cacheAsistencias[aIdx].inscripcionId);
     if (iIdx === -1) throw new Error('Inscripción no encontrada');
 
-    // Balance calculation
     const oldStatus = _cacheAsistencias[aIdx].estado;
     const newStatus = data.estado;
 

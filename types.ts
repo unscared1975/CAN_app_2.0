@@ -3,7 +3,7 @@ export type AttendanceStatus = 'P' | 'F' | 'L';
 export type PaymentMethod = 'Efectivo' | 'QR' | 'Transferencia';
 export type UserRole = 'ADMIN' | 'PROFESOR' | 'TUTOR';
 export type InscripcionEstado = 'Activo' | 'Finalizado' | 'Finalizado con Deuda' | 'Archivado';
-export type EgresoCategory = 'Sueldos' | 'Alquiler' | 'Materiales' | 'Pago de Servicios' | 'Otros';
+export type EgresoCategory = 'Gastos Administrativos' | 'Gastos de Comercializacion' | 'Gastos de Financiamiento' | 'Otros';
 
 export interface Alumno {
   id: string;
@@ -65,6 +65,7 @@ export interface Egreso {
   fecha: string;
   categoria: EgresoCategory;
   descripcion: string;
+  nroFactura?: string;
 }
 
 export interface Asistencia {

@@ -22,8 +22,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewC
     ].filter(item => item.roles.includes(userRole));
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 md:relative md:w-72 bg-white border-t md:border-t-0 md:border-r border-slate-200 z-[60] md:min-h-screen flex md:flex-col shadow-2xl md:shadow-none">
-            <div className="hidden md:flex flex-col items-center p-10 border-b border-slate-50">
+        <nav className="fixed bottom-0 left-0 right-0 md:relative md:w-60 bg-white border-t md:border-t-0 md:border-r border-slate-200 z-[60] md:min-h-screen flex md:flex-col shadow-2xl md:shadow-none">
+            <div className="hidden md:flex flex-col items-center p-6 border-b border-slate-50">
                 <div className="w-16 h-16 bg-primary rounded-3xl flex items-center justify-center mb-4 shadow-xl rotate-3">
                     <span className="text-white font-black text-3xl -rotate-3 tracking-tighter">CAN</span>
                 </div>
@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewC
                 </h1>
             </div>
 
-            <ul className="flex md:flex-col overflow-x-auto md:overflow-x-visible justify-start md:justify-start gap-3 md:gap-2 p-2 md:p-6 w-full">
+            <ul className="flex md:flex-col overflow-x-auto md:overflow-x-visible justify-start md:justify-start gap-3 md:gap-2 p-2 md:p-4 w-full">
                 {navItems.map((item) => (
                     <li key={item.id} className="min-w-[70px] flex-shrink-0 flex-grow md:flex-grow-0 md:w-full">
                         <button

@@ -60,8 +60,9 @@ export const FinancialReportModal: React.FC<Props> = ({ onClose }) => {
                 calculatedTitle = `Reporte Histórico: ${new Date(selectedMonth + '-02').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`; // -02 to avoid timezone prev month issues
             }
 
+            const maestro = dbService.getArchivoMaestro();
             const data = filteredPagos.map(p => {
-                const insc = allInscripciones.find(i => i.id === p.inscripcionId);
+                const insc = maestro.find(i => i.id === p.inscripcionId);
                 const alumno = insc?.alumno;
                 return {
                     fecha: p.fecha,

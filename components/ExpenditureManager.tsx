@@ -14,7 +14,8 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
     fecha: new Date().toISOString().split('T')[0],
     categoria: 'Otros' as EgresoCategory,
     monto: '',
-    descripcion: ''
+    descripcion: '',
+    nroFactura: ''
   });
 
   const [filterCat, setFilterCat] = useState<string>('');
@@ -22,14 +23,15 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
   const [showReportModal, setShowReportModal] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ fecha: string, categoria: EgresoCategory, monto: string, descripcion: string }>({
+  const [editForm, setEditForm] = useState<{ fecha: string, categoria: EgresoCategory, monto: string, descripcion: string, nroFactura?: string }>({
     fecha: '',
     categoria: 'Otros',
     monto: '',
-    descripcion: ''
+    descripcion: '',
+    nroFactura: ''
   });
 
-  const categories: EgresoCategory[] = ['Sueldos', 'Alquiler', 'Materiales', 'Pago de Servicios', 'Otros'];
+  const categories: EgresoCategory[] = ['Gastos Administrativos', 'Gastos de Comercializacion', 'Gastos de Financiamiento', 'Otros'];
 
   const egresos = useMemo(() => {
     return dbService.getEgresos().sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
@@ -52,14 +54,16 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
       fecha: formData.fecha,
       categoria: formData.categoria,
       monto: Number(formData.monto),
-      descripcion: formData.descripcion
+      descripcion: formData.descripcion,
+      nroFactura: formData.nroFactura
     });
 
     setFormData({
       fecha: new Date().toISOString().split('T')[0],
       categoria: 'Otros',
       monto: '',
-      descripcion: ''
+      descripcion: '',
+      nroFactura: ''
     });
 
     setStatus({ msg: 'Gasto registrado correctamente', type: 'success' });
@@ -82,7 +86,8 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
       fecha: e.fecha,
       categoria: e.categoria as EgresoCategory,
       monto: String(e.monto),
-      descripcion: e.descripcion
+      descripcion: e.descripcion,
+      nroFactura: e.nroFactura || ''
     });
   };
 
@@ -101,7 +106,8 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
         fecha: editForm.fecha,
         categoria: editForm.categoria,
         monto: Number(editForm.monto),
-        descripcion: editForm.descripcion
+        descripcion: editForm.descripcion,
+        nroFactura: editForm.nroFactura
       });
       setEditingId(null);
       setStatus({ msg: 'Gasto actualizado correctamente', type: 'success' });
@@ -113,7 +119,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
   };
 
   return (
-    <div className="space-y-6 md:space-y-10 max-w-[1200px] mx-auto animate-in fade-in duration-500 px-2 md:px-0">
+    <div className="space-y-6 md:space-y-10 w-full animate-in fade-in duration-500 px-2 md:px-0">
       {status && (
         <div className={`fixed top-8 right-8 z-[110] px-8 py-4 rounded-2xl shadow-2xl text-white font-black text-xs uppercase animate-in slide-in-from-top-10 ${status.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>
           {status.msg}
@@ -191,6 +197,17 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
               </div>
 
               <div>
+                <label className="text-[9px] font-black text-inactive uppercase tracking-widest ml-1 mb-1 block">Nro. Factura</label>
+                <input
+                  type="text"
+                  placeholder="Sin factura"
+                  value={formData.nroFactura}
+                  onChange={e => setFormData({ ...formData, nroFactura: e.target.value })}
+                  className="w-full px-5 py-3 bg-slate-50 rounded-xl font-bold text-primary text-xs outline-none border-2 border-transparent focus:border-primary/10 transition-all shadow-inner"
+                />
+              </div>
+
+              <div>
                 <label className="text-[9px] font-black text-inactive uppercase tracking-widest ml-1 mb-1 block">Monto (Bs.)</label>
                 <input
                   type="number"
@@ -229,6 +246,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-inactive uppercase tracking-widest">
                     <th className="px-6 py-4 whitespace-nowrap">Fecha</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Nro. Factura</th>
                     <th className="px-6 py-4 whitespace-nowrap">Categoría</th>
                     <th className="px-6 py-4 w-full">Descripción</th>
                     <th className="px-6 py-4 text-right whitespace-nowrap">Monto</th>
@@ -237,7 +255,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredEgresos.length === 0 ? (
-                    <tr><td colSpan={5} className="py-20 text-center text-inactive uppercase text-[10px] font-black tracking-widest opacity-50 italic">No hay egresos registrados</td></tr>
+                    <tr><td colSpan={6} className="py-20 text-center text-inactive uppercase text-[10px] font-black tracking-widest opacity-50 italic">No hay egresos registrados</td></tr>
                   ) : (
                     filteredEgresos.map(e => (
                       <tr key={e.id} className={`hover:bg-red-50/30 transition-colors group ${editingId === e.id ? 'bg-red-50/50' : ''}`}>
@@ -251,6 +269,18 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                             />
                           ) : (
                             dbService.formatDateDisplay(e.fecha)
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingId === e.id ? (
+                            <input
+                              type="text"
+                              value={editForm.nroFactura}
+                              onChange={ev => setEditForm({ ...editForm, nroFactura: ev.target.value })}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            />
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-500">{e.nroFactura || '-'}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

@@ -24,6 +24,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
   });
 
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [showMobileRegisterModal, setShowMobileRegisterModal] = useState(false);
   const [newEntry, setNewEntry] = useState({
     date: new Date().toISOString().split('T')[0],
     obs: '',
@@ -51,6 +52,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
       setStatus({ msg: 'Registro exitoso', type: 'success' });
       setTimeout(() => setStatus(null), 3000);
       setIsAddingNew(false);
+      setShowMobileRegisterModal(false);
       onUpdate();
     } catch (e: any) {
       setStatus({ msg: e.message, type: 'error' });
@@ -98,7 +100,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
   const isModuleFinished = selectedInscripcion?.saldoClases === 0;
 
   return (
-    <div className="space-y-10 max-w-[1200px] mx-auto animate-in fade-in duration-500">
+    <div className="space-y-10 w-full animate-in fade-in duration-500">
       {status && (
         <div className={`fixed top-8 right-8 z-[110] px-8 py-4 rounded-2xl shadow-2xl text-white font-black text-xs uppercase animate-in slide-in-from-top-10 ${status.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>
           {status.msg}
@@ -259,7 +261,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                   {/* BOTONES DE ACCIÓN MÓVIL (Solo visibles en Móvil) */}
                   <div className="space-y-4 md:hidden">
                     <button
-                      onClick={() => { if (!isModuleFinished) setIsAddingNew(!isAddingNew); }}
+                      onClick={() => { if (!isModuleFinished) setShowMobileRegisterModal(true); }}
                       disabled={isModuleFinished}
                       className={`w-full py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 ${isModuleFinished ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-slate-700'
                         }`}
@@ -274,6 +276,56 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
               )}
             </div>
           </div>
+
+          {/* MODAL MÓVIL PARA REGISTRO DE CLASE */}
+          {showMobileRegisterModal && selectedInscripcion && (
+            <div className="md:hidden fixed inset-0 z-[100] bg-[#1B3A4B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl animate-in zoom-in-95 duration-300">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-sm font-black text-primary uppercase tracking-widest">Registrar Avance</h3>
+                  <button onClick={() => setShowMobileRegisterModal(false)} className="p-2 bg-slate-100 rounded-full text-slate-400">
+                    <ICONS.Plus className="w-5 h-5 rotate-45" />
+                  </button>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <label className="text-[10px] font-black text-inactive uppercase tracking-widest block mb-2">Fecha de la Clase</label>
+                    <input
+                      type="date"
+                      min={selectedInscripcion.fechaInscripcion}
+                      value={newEntry.date}
+                      onChange={e => setNewEntry({ ...newEntry, date: e.target.value })}
+                      className="w-full bg-white px-4 py-3 rounded-xl font-bold text-primary outline-none border border-slate-200 text-sm"
+                    />
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <label className="text-[10px] font-black text-inactive uppercase tracking-widest block mb-2">Notas / Avance</label>
+                    <input
+                      type="text"
+                      placeholder="Temas avanzados..."
+                      value={newEntry.obs}
+                      onChange={e => setNewEntry({ ...newEntry, obs: e.target.value })}
+                      className="w-full bg-white px-4 py-3 rounded-xl font-bold text-slate-700 outline-none border border-slate-200 text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    <button onClick={() => handleRegister(selectedInscId, 'P', newEntry.date, newEntry.obs)} className="h-16 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center">
+                      <span className="text-3xl font-black">P</span>
+                    </button>
+                    <button onClick={() => handleRegister(selectedInscId, 'F', newEntry.date, newEntry.obs)} className="h-16 bg-red-500 text-white rounded-2xl shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center justify-center">
+                      <span className="text-3xl font-black">F</span>
+                    </button>
+                    <button onClick={() => handleRegister(selectedInscId, 'L', newEntry.date, newEntry.obs)} className="h-16 bg-blue-500 text-white rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center">
+                      <span className="text-3xl font-black">L</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="lg:col-span-8 space-y-8">
             {!selectedInscripcion ? (
@@ -295,7 +347,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                 </div>
 
                 {isAddingNew && !isModuleFinished && (
-                  <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-200 animate-in zoom-in-95 space-y-8 shadow-inner">
+                  <div className="hidden md:block p-8 bg-slate-50 rounded-[2.5rem] border border-slate-200 animate-in zoom-in-95 space-y-8 shadow-inner">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-inactive uppercase ml-2">Fecha Clase (Restricción: {dbService.formatDateDisplay(selectedInscripcion.fechaInscripcion)})</label>
