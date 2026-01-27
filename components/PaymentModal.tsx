@@ -11,9 +11,10 @@ interface PaymentModalProps {
   onClose: () => void;
   onSuccess: () => void;
   pagoToEdit?: Pago;
+  initialEditMode?: boolean;
 }
 
-export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose, onSuccess, pagoToEdit }) => {
+export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose, onSuccess, pagoToEdit, initialEditMode = false }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null); // Referencia dedicada para la generación de imagen
 
@@ -32,7 +33,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
 
   const [lastSavedPago, setLastSavedPago] = useState<Pago | null>(pagoToEdit || null);
   const [loading, setLoading] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(!!pagoToEdit);
+  const [isConfirmed, setIsConfirmed] = useState(false); // Initialize safely
+
+  // Force strict mode sync on mount/change
+  useEffect(() => {
+    if (pagoToEdit) {
+      // If we have a payment, we are confirmed (View Ticket) UNLESS explicit edit mode is requested
+      setIsConfirmed(!initialEditMode);
+    } else {
+      // No payment = New Payment = Not Confirmed
+      setIsConfirmed(false);
+    }
+  }, [pagoToEdit, initialEditMode]);
 
   // Memoria de Concepto Específica por Alumno (Solo si no estamos editando)
   useEffect(() => {
@@ -114,7 +126,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         <img src="https://i.ibb.co/4ZZDcntJ/CAN-30-X30-Circulo.png" alt="Logo" className="w-[32px] h-[32px] md:w-[42px] md:h-[42px] mb-1 transition-all" />
         <h2 className="text-[9px] md:text-[11px] font-black text-white uppercase tracking-[0.1em] leading-none text-center">CENTRO DE NIVELACIÓN CAN</h2>
         <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-0.5 md:mt-1">
-          {pagoToEdit && !isConfirmed ? 'REVISAR PAGO' : isConfirmed ? 'RECIBO OFICIAL' : 'REGISTRAR PAGO'}
+          {pagoToEdit && !isConfirmed ? 'EDITAR PAGO' : isConfirmed ? 'RECIBO OFICIAL' : 'REGISTRAR PAGO'}
         </p>
         {!isConfirmed && (
           <button onClick={onClose} className="absolute top-3 right-3 md:top-4 md:right-4 text-white/40"><ICONS.Plus className="w-5 h-5 md:w-6 md:h-6 rotate-45" /></button>

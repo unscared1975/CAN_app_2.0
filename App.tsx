@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { ViewMode, Inscripcion, AttendanceStatus, Modulo, Horario, UserRole, Alumno, Pago, Egreso } from './types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ViewMode, Inscripcion, Modulo, Horario, UserRole, Alumno, Pago, Egreso } from './types';
 import { dbService } from './services/db';
 import { ICONS } from './constants';
 import { LoginForm } from './components/LoginForm';
@@ -11,8 +11,7 @@ import { ExpenditureManager } from './components/ExpenditureManager';
 import { DashboardStats } from './components/DashboardStats';
 import { SettingsManager } from './components/SettingsManager';
 import { GeminiAssistant } from './components/GeminiAssistant';
-import { receiptService } from './services/receiptService';
-import { reportService } from './services/reportService';
+
 import { Sidebar } from './components/Sidebar';
 import { Layout } from './components/Layout';
 import { FinancialReportModal } from './components/FinancialReportModal';
@@ -46,6 +45,7 @@ const App: React.FC = () => {
   const [notification, setNotification] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
   const [selectedInscripcion, setSelectedInscripcion] = useState<Inscripcion | null>(null);
   const [pagoToEdit, setPagoToEdit] = useState<Pago | undefined>(undefined);
+  const [startInEditMode, setStartInEditMode] = useState(false);
   const [editingStudent, setEditingStudent] = useState<{ alumno: Alumno, inscripcion: Inscripcion, isRenewal?: boolean } | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
@@ -123,7 +123,10 @@ const App: React.FC = () => {
       filtered = filtered.filter(i =>
         i.alumno?.nombre.toLowerCase().includes(term) ||
         i.alumno?.apellido.toLowerCase().includes(term) ||
-        i.modulo?.nombre.toLowerCase().includes(term)
+        i.modulo?.nombre.toLowerCase().includes(term) ||
+        (view === ViewMode.PAGOS && (
+          i.alumno?.tutorNombre?.toLowerCase().includes(term)
+        ))
       );
     }
     if (filterModulo) filtered = filtered.filter(i => i.moduloId === filterModulo);
@@ -171,6 +174,20 @@ const App: React.FC = () => {
     ].sort((a, b) => b.sortKey - a.sortKey);
     return { totalIngresos, totalEgresos, saldoNeto, history };
   }, [filteredInscripciones, searchTerm, inscripciones]);
+
+  const handleDeleteStudent = async (alumnoId: string) => {
+    if (window.confirm('¿ESTÁS SEGURO? Esta acción ELIMINARÁ PERMANENTEMENTE al alumno, su historial de asistencia y sus pagos. NO SE PUEDE DESHACER.')) {
+      try {
+        await dbService.deleteAlumno(alumnoId);
+        showNotification("Alumno eliminado correctamente", "success");
+        setEditingStudent(null);
+        setSelectedInscripcion(null);
+        loadData();
+      } catch (error: any) {
+        showNotification("Error eliminando: " + error.message, "error");
+      }
+    }
+  };
 
   const handleRegistration = async (data: any) => {
     try {
@@ -241,9 +258,10 @@ const App: React.FC = () => {
       {selectedInscripcion && (
         <PaymentModal
           inscripcion={selectedInscripcion}
-          onClose={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); }}
-          onSuccess={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); setView(ViewMode.PAGOS); loadData(); }}
+          onClose={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); setStartInEditMode(false); }}
+          onSuccess={() => { setSelectedInscripcion(null); setPagoToEdit(undefined); setStartInEditMode(false); setView(ViewMode.PAGOS); loadData(); }}
           pagoToEdit={pagoToEdit}
+          initialEditMode={startInEditMode}
         />
       )}
 
@@ -328,6 +346,7 @@ const App: React.FC = () => {
                     <th className="px-10 py-6">Estudiante</th>
                     <th className="px-10 py-6">Tutor</th>
                     <th className="px-10 py-6 text-center">Clases</th>
+                    <th className="px-10 py-6 text-center">Horario</th>
                     <th className="px-10 py-6 text-center">Estado</th>
                     {view === ViewMode.CUENTAS_COBRAR && <th className="px-10 py-6 text-right">Deuda</th>}
                     <th className="px-10 py-6 text-right">Acciones</th>
@@ -375,6 +394,18 @@ const App: React.FC = () => {
                             <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                               <div className={`h-full transition-all duration-700 ${barColor}`} style={{ width: `${progressPercent}%` }}></div>
                             </div>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6 text-center">
+                          <div className="flex flex-col items-center">
+                            {i.horario?.moduloId === 'custom' ? (
+                              <span className="text-[10px] font-black text-slate-400 uppercase italic tracking-wider">Personalizado</span>
+                            ) : (
+                              <>
+                                <span className="text-[11px] font-black text-slate-700 uppercase tracking-tighter">{i.horario?.horaInicio} - {i.horario?.horaFin}</span>
+                                {i.horario?.dias && <span className="text-[9px] font-bold text-inactive uppercase tracking-wider mt-0.5">{i.horario.dias}</span>}
+                              </>
+                            )}
                           </div>
                         </td>
                         <td className="px-10 py-6 text-center">
@@ -430,9 +461,18 @@ const App: React.FC = () => {
                                 <ICONS.CurrencyDollar className="w-4 h-4" /> COBRAR
                               </button>
                             ) : (
-                              <button onClick={() => { setEditingStudent({ alumno: i.alumno!, inscripcion: i }); setView(ViewMode.REGISTRO); }} className="p-3 bg-slate-100 text-primary rounded-xl hover:bg-primary hover:text-white transition-all transform hover:scale-110">
-                                <ICONS.Pencil className="w-4 h-4" />
-                              </button>
+                              <>
+                                <button onClick={() => { setEditingStudent({ alumno: i.alumno!, inscripcion: i }); setView(ViewMode.REGISTRO); }} className="p-3 bg-slate-100 text-primary rounded-xl hover:bg-primary hover:text-white transition-all transform hover:scale-110">
+                                  <ICONS.Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteStudent(i.alumnoId)}
+                                  className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all transform hover:scale-110 ml-2"
+                                  title="Eliminar Alumno (Irreversible)"
+                                >
+                                  <ICONS.Trash className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -599,6 +639,7 @@ const App: React.FC = () => {
                               if (found) {
                                 setSelectedInscripcion(found);
                                 setPagoToEdit(item);
+                                setStartInEditMode(false);
                               }
                             }
                           }}
@@ -635,7 +676,7 @@ const App: React.FC = () => {
                                     </span>
                                     {item.statusPago.deuda > 0 ? (
                                       <span className="px-2 py-0.5 bg-red-50 rounded text-[9px] font-bold text-red-500 border border-red-100">
-                                        Resta: {item.statusPago.deuda.toFixed(2)} Bs
+                                        Saldo: {item.statusPago.deuda.toFixed(2)} Bs
                                       </span>
                                     ) : (
                                       <span className="px-2 py-0.5 bg-emerald-50 rounded text-[9px] font-bold text-emerald-600 border border-emerald-100">
@@ -648,10 +689,49 @@ const App: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-8 py-5 text-center">
-                            <span className="px-3 py-1 bg-slate-100 rounded-lg text-[9px] font-black text-primary uppercase">{item.metodo}</span>
+                            <span className="px-5 py-2 bg-slate-100 rounded-xl text-[11px] font-black text-primary uppercase tracking-widest">{item.metodo}</span>
                           </td>
                           <td className={`px-8 py-5 text-right font-black text-base ${item.type === 'ingreso' ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {item.type === 'ingreso' ? '+' : '-'}{Number(item.monto).toFixed(2)} Bs.
+                            <div className="flex items-center justify-end gap-3">
+                              <span>{item.type === 'ingreso' ? '+' : '-'}{Number(item.monto).toFixed(2)} Bs.</span>
+                              {item.type === 'ingreso' && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const found = inscripciones.find(i => i.id === item.inscripcionId);
+                                      if (found) {
+                                        setSelectedInscripcion(found);
+                                        setPagoToEdit(item);
+                                        setStartInEditMode(true);
+                                      }
+                                    }}
+                                    className="hidden md:block p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100"
+                                    title="Editar Pago"
+                                  >
+                                    <ICONS.Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm("¿Está seguro que desea eliminar este pago? Esta acción es irreversible.")) {
+                                        try {
+                                          await dbService.deletePago(item.id);
+                                          showNotification("Pago eliminado correctamente", "success");
+                                          loadData(); // This will refresh the totals and list
+                                        } catch (error) {
+                                          showNotification("Error eliminando pago", "error");
+                                        }
+                                      }
+                                    }}
+                                    className="hidden md:block p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors shadow-sm border border-red-100"
+                                    title="Eliminar Pago"
+                                  >
+                                    <ICONS.Trash className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

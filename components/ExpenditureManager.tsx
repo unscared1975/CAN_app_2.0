@@ -280,7 +280,7 @@ export const ExpenditureManager: React.FC<ExpenditureManagerProps> = ({ onUpdate
                               className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
                             />
                           ) : (
-                            <span className="text-[10px] font-bold text-slate-500">{e.nroFactura || '-'}</span>
+                            <span className="text-xs font-bold text-slate-500">{e.nroFactura || '-'}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

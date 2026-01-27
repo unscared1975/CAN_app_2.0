@@ -149,7 +149,7 @@ export const dbService = {
         if (modulosRes.data && modulosRes.data.length > 0) {
           _cacheModulos = modulosRes.data.map(mapModulo);
         } else {
-          console.log("No se encontraron módulos, usando defaults en memoria...");
+
           _cacheModulos = DEFAULT_MODULOS.map(mapModulo);
           // Intentar sincronizar en segundo plano
           dbService.seedDefaults().catch(console.error);
@@ -392,6 +392,19 @@ export const dbService = {
     return null;
   },
 
+  deletePago: async (pagoId: string) => {
+    const idx = _cachePagos.findIndex(p => p.id === pagoId);
+    if (idx !== -1) {
+      const inscripcionId = _cachePagos[idx].inscripcionId;
+      _cachePagos = _cachePagos.filter(p => p.id !== pagoId);
+
+      await supabase.from('pagos').delete().eq('id', pagoId);
+
+      // Update inscription status after deleting payment (re-check debt)
+      await dbService.sincronizarEstadoInscripcion(inscripcionId);
+    }
+  },
+
   getAllInscripciones: (): Inscripcion[] => _cacheInscripciones,
 
   sincronizarEstadoInscripcion: async (inscripcionId: string) => {
@@ -477,6 +490,53 @@ export const dbService = {
   updateInscripcion: async (insc: Partial<Inscripcion> & { id: string }) => {
     const idx = _cacheInscripciones.findIndex(i => i.id === insc.id);
     if (idx !== -1) {
+      // Lógica para recalcular saldoClases si cambia el Módulo
+      // El saldo debe ser: TotalClasesNuevo - ClasesConsumidas(P o F)
+      const currentInsc = _cacheInscripciones[idx];
+      let shouldRecalculate = false;
+      let newTotalClases = 0;
+
+      // 1. Detectar si cambió el ID del módulo
+      if (insc.moduloId && insc.moduloId !== currentInsc.moduloId) {
+        shouldRecalculate = true;
+      }
+      // 2. O si es un módulo personalizado y cambiaron sus propiedades (ej. total de clases)
+      else if ((insc.moduloId === 'custom' || currentInsc.moduloId === 'custom') && insc.customModulo) {
+        shouldRecalculate = true;
+      }
+
+      // ESTRATEGIA ROBUSTA: Si se provee un moduloId (aunque sea el mismo), forzamos recalculo para asegurar consistencia
+      if (insc.moduloId) {
+        shouldRecalculate = true;
+      }
+
+      if (shouldRecalculate) {
+        const targetModuleId = insc.moduloId || currentInsc.moduloId;
+
+        // Determinar el nuevo total de clases
+        if (targetModuleId === 'custom' || targetModuleId === 'Personalizado') {
+          const customMod = insc.customModulo || currentInsc.customModulo;
+          if (customMod) newTotalClases = customMod.totalClases;
+        } else {
+          const mod = _cacheModulos.find(m => m.id === targetModuleId);
+          if (mod) newTotalClases = mod.totalClases;
+        }
+
+        // Calcular clases ya consumidas (P o F)
+        if (newTotalClases > 0) {
+          const consumidas = _cacheAsistencias.filter(a =>
+            a.inscripcionId === insc.id && (a.estado === 'P' || a.estado === 'F')
+          ).length;
+
+          // Actualizar el saldo (Asegurando no negativo)
+          const nuevoSaldo = Math.max(0, newTotalClases - consumidas);
+
+
+
+          insc.saldoClases = nuevoSaldo;
+        }
+      }
+
       _cacheInscripciones[idx] = { ..._cacheInscripciones[idx], ...insc };
       _cacheInscripciones = [..._cacheInscripciones];
 
@@ -487,6 +547,7 @@ export const dbService = {
       if (insc.costoAcordado !== undefined) updatePayload.costo_acordado = insc.costoAcordado;
       if (insc.saldoClases !== undefined) updatePayload.saldo_clases = insc.saldoClases;
       if (insc.estado) updatePayload.estado = insc.estado;
+      if (insc.customModulo) updatePayload.custom_modulo = insc.customModulo;
 
       await supabase.from('inscripciones').update(updatePayload).eq('id', insc.id);
     }
@@ -514,6 +575,40 @@ export const dbService = {
       const totalAbonado = dbService.getTotalAbonado(i.id);
       return totalAbonado < i.costoAcordado;
     });
+  },
+
+  deleteAlumno: async (alumnoId: string) => {
+    // 1. Identificar todas las inscripciones del alumno
+    const inscripcionesDelAlumno = _cacheInscripciones.filter(i => i.alumnoId === alumnoId);
+    const inscripcionesIds = inscripcionesDelAlumno.map(i => i.id);
+
+    // 2. Eliminar Asistencias asociadas a esas inscripciones
+    // Cache
+    _cacheAsistencias = _cacheAsistencias.filter(a => !inscripcionesIds.includes(a.inscripcionId));
+    // DB
+    if (inscripcionesIds.length > 0) {
+      await supabase.from('asistencias').delete().in('inscripcion_id', inscripcionesIds);
+    }
+
+    // 3. Eliminar Pagos asociados a esas inscripciones
+    // Cache
+    _cachePagos = _cachePagos.filter(p => !inscripcionesIds.includes(p.inscripcionId));
+    // DB
+    if (inscripcionesIds.length > 0) {
+      await supabase.from('pagos').delete().in('inscripcion_id', inscripcionesIds);
+    }
+
+    // 4. Eliminar las Inscripciones
+    // Cache
+    _cacheInscripciones = _cacheInscripciones.filter(i => i.alumnoId !== alumnoId);
+    // DB
+    await supabase.from('inscripciones').delete().eq('alumno_id', alumnoId);
+
+    // 5. Eliminar al Alumno
+    // Cache
+    _cacheAlumnos = _cacheAlumnos.filter(a => a.id !== alumnoId);
+    // DB
+    await supabase.from('alumnos').delete().eq('id', alumnoId);
   },
 
   registrarAsistencia: async (inscripcionId: string, estado: AttendanceStatus, fecha: string, observacion: string = '') => {

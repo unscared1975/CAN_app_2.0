@@ -124,7 +124,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
               className={`px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center gap-3 active:scale-95 ${isModuleFinished ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-slate-700'
                 }`}
             >
-              <ICONS.Plus className="w-4 h-4" /> {isModuleFinished ? 'Clases Agotadas' : 'Registrar Avance'}
+              <ICONS.Plus className="w-4 h-4" /> {isModuleFinished ? 'Clases Agotadas' : 'Registrar Clase'}
             </button>
             <button
               onClick={handleDownloadHistory}
@@ -248,7 +248,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
 
                     <div className="grid grid-cols-2 gap-2 md:gap-4 border-t border-white/10 mt-4 md:mt-8 pt-4 md:pt-8 text-white">
                       <div className="text-center">
-                        <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">Total Ciclo</p>
+                        <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">Clases</p>
                         <p className="text-xl font-black">{selectedInscripcion.modulo?.totalClases}</p>
                       </div>
                       <div className="text-center">
