@@ -1,7 +1,7 @@
 
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import { Inscripcion, Pago, CentroConfig } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Inscripcion, Pago } from '../types';
 import { dbService } from './db';
 
 const cleanFileName = (text: string) => {
@@ -20,9 +20,15 @@ export const receiptService = {
   },
 
   generatePDF: (inscripcion: Inscripcion, pago: Pago, totalAbonado: number) => {
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const primaryColor = [38, 71, 92]; // #26475C
-    const lightGray = [248, 250, 252];
+    // Instantiate jsPDF
+    const doc = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const primaryColor = [38, 71, 92] as [number, number, number]; // #26475C
+    const lightGray = [248, 250, 252] as [number, number, number];
 
     // --- 1. Encabezado Compacto (35mm) ---
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -41,13 +47,13 @@ export const receiptService = {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.text('CENTRO DE NIVELACIÓN SEVILLA', 105, 18, { align: 'center' });
+    doc.text('CENTRO DE NIVELACIÓN CAN', 105, 18, { align: 'center' }); // Changed SEVILLA to CAN to match ticket
 
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFontSize(16);
     doc.text('RECIBO DE PAGO', 105, 45, { align: 'center' });
 
-    // --- 2. Metadatos del Recibo (Formato MM-DD-YY) ---
+    // --- 2. Metadatos del Recibo ---
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
@@ -87,15 +93,16 @@ export const receiptService = {
     const costoTotal = inscripcion.costoAcordado || 0;
     const saldoPendiente = Math.max(0, costoTotal - totalAbonado);
 
-    (doc as any).autoTable({
+    // Use standard functional call for autoTable
+    autoTable(doc, {
       startY: 115,
       head: [['Descripción del Movimiento', 'Monto']],
       body: [
         ['Costo del Módulo', `${costoTotal} Bs.`],
-        [{ content: `CONCEPTO: ${pago?.concepto || 'Pago de mensualidad'}`, styles: { fontStyle: 'italic', fontSize: 8, textColor: [100, 100, 100] } }, ''],
+        [{ content: `CONCEPTO: ${pago?.concepto || 'Pago de mensualidad'}`, styles: { fontStyle: 'italic', fontSize: 8, textColor: [100, 100, 100] as [number, number, number] } }, ''],
         ['Monto de esta Transacción', `${pago?.monto || 0} Bs.`],
         ['Total Abonado a la Fecha', `${totalAbonado} Bs.`],
-        [{ content: 'SALDO PENDIENTE', styles: { fontStyle: 'bold' } }, { content: `${saldoPendiente} Bs.`, styles: { fontStyle: 'bold', textColor: [200, 0, 0] } }],
+        [{ content: 'SALDO PENDIENTE', styles: { fontStyle: 'bold' } }, { content: `${saldoPendiente} Bs.`, styles: { fontStyle: 'bold', textColor: [200, 0, 0] as [number, number, number] } }],
       ],
       theme: 'grid',
       headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 10 },
@@ -107,14 +114,15 @@ export const receiptService = {
     });
 
     // --- 5. Nota Final ---
-    const finalTableY = (doc as any).lastAutoTable.finalY;
+    // Access lastAutoTable from doc instance (it's attached by the plugin)
+    const finalTableY = (doc as any).lastAutoTable?.finalY || 180;
     const notaY = finalTableY + 10;
     doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
     doc.rect(15, notaY, 180, 12, 'F');
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8.5);
     doc.setTextColor(80, 80, 80);
-    const notaTexto = pago?.nota || 'Solo tiene opción a una falta y a una licencia, tomar en cuenta eso por favor.';
+    const notaTexto = paymentNote(pago?.nota);
     doc.text(notaTexto, 20, notaY + 7, { maxWidth: 170 });
 
     const footerY = 280;
@@ -136,3 +144,8 @@ export const receiptService = {
     window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
   }
 };
+
+// Helper simple para la nota si viene vacía
+function paymentNote(nota?: string) {
+  return nota || 'Solo tiene opción a una falta y a una licencia, tomar en cuenta eso por favor.';
+}
