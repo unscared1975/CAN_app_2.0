@@ -184,16 +184,16 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         </div>
 
         <div className="space-y-2 md:space-y-[8px]">
-          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
+          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Concepto</label>
             {isConfirmed ? (
               <p className="text-xs md:text-[13px] font-bold text-[#1B3A4B] leading-snug break-words">{concepto}</p>
             ) : (
-              <input value={concepto} onChange={e => setConcepto(e.target.value)} className="bg-transparent w-full text-xs md:text-[13px] font-bold text-[#1B3A4B] outline-none" placeholder="..." />
+              <input value={concepto} onChange={e => setConcepto(e.target.value)} className="bg-transparent w-full text-xs md:text-[13px] font-bold text-[#1B3A4B] outline-none text-center" placeholder="..." />
             )}
           </div>
 
-          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center min-h-[50px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
+          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center min-h-[50px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Nota:</label>
             {isConfirmed ? (
               <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-snug animate-in fade-in break-words pb-1">{nota}</p>
@@ -201,7 +201,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
               <textarea
                 value={nota}
                 onChange={e => setNota(e.target.value)}
-                className="bg-transparent w-full text-[10px] md:text-[11px] font-bold text-red-600 outline-none resize-none h-[34px] md:h-[44px]"
+                className="bg-transparent w-full text-[10px] md:text-[11px] font-bold text-red-600 outline-none resize-none h-[34px] md:h-[44px] text-center"
                 placeholder="Notas (máx 2 líneas)"
               />
             )}
