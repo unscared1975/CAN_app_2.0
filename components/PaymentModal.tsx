@@ -139,7 +139,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             <p className="text-base md:text-[18px] font-bold text-[#10B981] uppercase tracking-tighter mb-1 md:mb-2 animate-in zoom-in">★ PAGO EXITOSO ★</p>
           )}
           {/* Nombre en una sola línea para el ticket visual y exportado */}
-          <h4 className="text-[14px] md:text-[16px] font-semibold text-[#1B3A4B] uppercase px-2 md:px-4 leading-none md:leading-normal truncate">
+          <h4 className="text-[14px] md:text-[16px] font-semibold text-[#1B3A4B] uppercase px-2 md:px-4 leading-snug truncate pb-1">
             {inscripcion.alumno?.nombre} {inscripcion.alumno?.apellido}
           </h4>
         </div>
@@ -196,7 +196,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
           <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Nota:</label>
             {isConfirmed ? (
-              <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-tight animate-in fade-in breakdown-words line-clamp-2">{nota}</p>
+              <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-snug animate-in fade-in break-words line-clamp-2 pb-0.5">{nota}</p>
             ) : (
               <textarea
                 value={nota}
