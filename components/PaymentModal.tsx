@@ -149,7 +149,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             <p className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase mb-0.5">Costo Módulo</p>
             <p className="text-sm md:text-[18px] font-bold text-[#26475C] leading-none">{inscripcion.costoAcordado} Bs.</p>
           </div>
-          <div className={`p-2 md:p-[12px] rounded-[16px] md:rounded-[20px] border text-center ${isConfirmed ? 'bg-[#ECFDF5] border-[#D1FAE5]' : 'bg-[#F0F9FF] border-[#E0F2FE]'}`}>
+          <div className={`p-2 md:p-[12px] rounded-[16px] md:rounded-[20px] border text-center flex flex-col justify-center ${isConfirmed ? 'bg-[#ECFDF5] border-[#D1FAE5]' : 'bg-[#F0F9FF] border-[#E0F2FE]'}`}>
             <p className={`text-[9px] md:text-[11px] font-medium uppercase mb-0.5 ${isConfirmed ? 'text-[#059669]' : 'text-[#26475C]'}`}>
               {pagoToEdit && !isConfirmed ? 'CORREGIR' : 'ABONO'}
             </p>
@@ -169,7 +169,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         </div>
 
         <div className="grid grid-cols-2 gap-2 md:gap-[10px] py-2 md:py-[10px] border-y border-[#F1F5F9] mt-1 md:mt-2">
-          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] pt-2 pb-3 px-1 md:pt-[10px] md:pb-[14px] border border-[#F1F5F9]">
+          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] p-2 md:p-[12px] border border-[#F1F5F9] flex flex-col justify-center">
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">F. Transacción</label>
             <div className="text-xs md:text-[13px] font-bold text-[#26475C]">
               {isConfirmed ? dbService.formatDateDisplay(fecha) : (
@@ -177,14 +177,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
               )}
             </div>
           </div>
-          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] pt-2 pb-3 px-1 md:pt-[10px] md:pb-[14px] border border-[#F1F5F9]">
+          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] p-2 md:p-[12px] border border-[#F1F5F9] flex flex-col justify-center">
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Inicio Inscripción</label>
             <div className="text-xs md:text-[13px] font-bold text-[#26475C]">{dbService.formatDateDisplay(inscripcion.fechaInscripcion)}</div>
           </div>
         </div>
 
         <div className="space-y-2 md:space-y-[8px]">
-          <div className={`px-3 pt-2 pb-3 md:pt-[12px] md:pb-[16px] rounded-[16px] md:rounded-[20px] ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
+          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Concepto</label>
             {isConfirmed ? (
               <p className="text-xs md:text-[13px] font-bold text-[#1B3A4B] leading-snug break-words">{concepto}</p>
@@ -193,10 +193,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             )}
           </div>
 
-          <div className={`px-3 pt-2 pb-3 md:pt-[12px] md:pb-[16px] rounded-[16px] md:rounded-[20px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
+          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center min-h-[50px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
             <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Nota:</label>
             {isConfirmed ? (
-              <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-snug animate-in fade-in break-words line-clamp-2 pb-0.5">{nota}</p>
+              <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-snug animate-in fade-in break-words pb-1">{nota}</p>
             ) : (
               <textarea
                 value={nota}
@@ -215,7 +215,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             </div>
           )}
 
-          <div className={`pt-2 pb-3 px-3 md:pt-[12px] md:pb-[16px] md:px-[14px] rounded-[16px] md:rounded-[24px] text-center shadow-inner ${isConfirmed ? 'bg-[#26475C] text-white' : 'bg-[#FEF2F2] text-[#B91C1C]'}`}>
+          <div className={`py-2 px-3 md:p-[14px] rounded-[16px] md:rounded-[24px] text-center shadow-inner flex flex-col justify-center items-center ${isConfirmed ? 'bg-[#26475C] text-white' : 'bg-[#FEF2F2] text-[#B91C1C]'}`}>
             <p className="text-[9px] md:text-[11px] font-medium uppercase opacity-70 mb-0.5 md:mb-1">Saldo Final Pendiente</p>
             <p className="text-lg md:text-[20px] font-black leading-none">
               {Math.max(0, saldoRestanteReferencia - (isConfirmed ? (lastSavedPago?.monto || 0) : monto))} Bs.
