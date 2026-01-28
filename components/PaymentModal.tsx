@@ -145,12 +145,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         </div>
 
         <div className="grid grid-cols-2 gap-2 md:gap-[10px]">
-          <div className="p-2 md:p-[12px] bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] border border-[#F1F5F9] text-center flex flex-col justify-center">
-            <p className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase mb-0.5">Costo Módulo</p>
+          <div className="bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] border border-[#F1F5F9] flex flex-col justify-center items-center text-center gap-0.5 py-3 px-2 h-full">
+            <p className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase">Costo Módulo</p>
             <p className="text-sm md:text-[18px] font-bold text-[#26475C] leading-none">{inscripcion.costoAcordado} Bs.</p>
           </div>
-          <div className={`p-2 md:p-[12px] rounded-[16px] md:rounded-[20px] border text-center flex flex-col justify-center ${isConfirmed ? 'bg-[#ECFDF5] border-[#D1FAE5]' : 'bg-[#F0F9FF] border-[#E0F2FE]'}`}>
-            <p className={`text-[9px] md:text-[11px] font-medium uppercase mb-0.5 ${isConfirmed ? 'text-[#059669]' : 'text-[#26475C]'}`}>
+          <div className={`rounded-[16px] md:rounded-[20px] border flex flex-col justify-center items-center text-center gap-0.5 py-3 px-2 h-full ${isConfirmed ? 'bg-[#ECFDF5] border-[#D1FAE5]' : 'bg-[#F0F9FF] border-[#E0F2FE]'}`}>
+            <p className={`text-[9px] md:text-[11px] font-medium uppercase ${isConfirmed ? 'text-[#059669]' : 'text-[#26475C]'}`}>
               {pagoToEdit && !isConfirmed ? 'CORREGIR' : 'ABONO'}
             </p>
             <div className="text-base md:text-[18px] font-bold flex items-center justify-center gap-2 leading-none">
@@ -169,23 +169,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
         </div>
 
         <div className="grid grid-cols-2 gap-2 md:gap-[10px] py-2 md:py-[10px] border-y border-[#F1F5F9] mt-1 md:mt-2">
-          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] p-2 md:p-[12px] border border-[#F1F5F9] flex flex-col justify-center">
-            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">F. Transacción</label>
+          <div className="bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] border border-[#F1F5F9] flex flex-col justify-center items-center text-center gap-0.5 py-3 px-1 h-full">
+            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block">F. Transacción</label>
             <div className="text-xs md:text-[13px] font-bold text-[#26475C]">
               {isConfirmed ? dbService.formatDateDisplay(fecha) : (
                 <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} className="bg-transparent px-1 md:px-2 rounded-md outline-none text-[10px] md:text-[11px] w-full text-center" />
               )}
             </div>
           </div>
-          <div className="text-center bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] p-2 md:p-[12px] border border-[#F1F5F9] flex flex-col justify-center">
-            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Inicio Inscripción</label>
+          <div className="bg-[#F8FAFC] rounded-[16px] md:rounded-[20px] border border-[#F1F5F9] flex flex-col justify-center items-center text-center gap-0.5 py-3 px-1 h-full">
+            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block">Inicio Inscripción</label>
             <div className="text-xs md:text-[13px] font-bold text-[#26475C]">{dbService.formatDateDisplay(inscripcion.fechaInscripcion)}</div>
           </div>
         </div>
 
         <div className="space-y-2 md:space-y-[8px]">
-          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
-            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Concepto</label>
+          <div className={`px-3 py-3 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center gap-0.5 ${isConfirmed ? 'bg-white border border-[#F1F5F9]' : 'bg-[#F8FAFC]'}`}>
+            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block">Concepto</label>
             {isConfirmed ? (
               <p className="text-xs md:text-[13px] font-bold text-[#1B3A4B] leading-snug break-words">{concepto}</p>
             ) : (
@@ -193,8 +193,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
             )}
           </div>
 
-          <div className={`px-3 py-2 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center min-h-[50px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
-            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block mb-0.5">Nota:</label>
+          <div className={`px-3 py-3 md:p-[12px] rounded-[16px] md:rounded-[20px] flex flex-col justify-center items-center text-center gap-0.5 min-h-[60px] ${isConfirmed ? 'bg-[#FFF7ED] border border-[#FED7AA]' : 'bg-[#F8FAFC]'}`}>
+            <label className="text-[9px] md:text-[11px] font-medium text-[#4B5563] uppercase block">Nota:</label>
             {isConfirmed ? (
               <p className="text-[10px] md:text-[11px] font-bold italic text-red-600 leading-snug animate-in fade-in break-words pb-1">{nota}</p>
             ) : (
@@ -272,7 +272,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ inscripcion, onClose
       {/* 3. VISTA OCULTA PARA EXPORTACIÓN (Hidden Export Container) */}
       {/* Estilo fijo para generar la imagen: Marco Verde Azulado Centrado con Tarjeta Blanca */}
       <div style={{ position: 'absolute', top: -9999, left: -9999 }}>
-        <div ref={exportRef} className="bg-[#59A9B9] p-8 w-[420px] flex flex-col items-center justify-center">
+        <div ref={exportRef} className="bg-[#59A9B9] p-8 w-[390px] flex flex-col items-center justify-center">
           <div className="bg-white w-full rounded-[32px] overflow-hidden shadow-2xl scale-100">
             {renderTicketContent(true)}
           </div>
