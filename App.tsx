@@ -272,7 +272,7 @@ const App: React.FC = () => {
       )}
 
       {showGlobalSearch && (
-        <div className="mb-4 md:mb-8 w-full animate-in fade-in duration-300">
+        <div className="mb-4 md:mb-8 w-full animate-in fade-in duration-300 sticky top-0 z-[50] bg-[#F8FAFC]/90 backdrop-blur-sm py-4 -mx-2 px-2 md:-mx-6 md:px-6 -mt-2 md:-mt-6 border-b border-primary/5 transition-all">
           <div className="hidden md:flex items-center gap-3 bg-white p-3.5 rounded-[2rem] border border-slate-100 shadow-xl group focus-within:ring-4 ring-primary/5 transition-all">
             <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-inactive group-focus-within:text-primary group-focus-within:bg-primary/5 transition-all">
               <ICONS.Users className="w-5 h-5" />

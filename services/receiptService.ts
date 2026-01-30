@@ -20,11 +20,12 @@ export const receiptService = {
   },
 
   generatePDF: (inscripcion: Inscripcion, pago: Pago, totalAbonado: number) => {
-    // Instantiate jsPDF
+    // Instantiate jsPDF with compression enabled
     const doc = new jsPDF({
       orientation: 'p',
       unit: 'mm',
-      format: 'a4'
+      format: 'a4',
+      compress: true
     });
 
     const primaryColor = [38, 71, 92] as [number, number, number]; // #26475C

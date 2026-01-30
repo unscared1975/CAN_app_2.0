@@ -12,6 +12,7 @@ interface AttendanceManagerProps {
 
 export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripciones, onUpdate }) => {
   const [mode, setMode] = useState<'daily' | 'individual'>('daily');
+  const [viewFormat, setViewFormat] = useState<'cards' | 'list'>('list');
   const [selectedInscId, setSelectedInscId] = useState<string>('');
   const [fechaDiaria, setFechaDiaria] = useState(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
@@ -143,76 +144,198 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
               <h3 className="text-sm font-black text-primary uppercase tracking-[0.3em] leading-none mb-1">REGISTRO DE ASISTENCIA DIARIA</h3>
               <p className="text-[10px] font-bold text-inactive uppercase tracking-widest">Lógica de Filtrado Sincronizada</p>
             </div>
-            <input type="date" value={fechaDiaria} onChange={e => setFechaDiaria(e.target.value)} className="w-full md:w-auto px-6 py-3 bg-slate-50 rounded-2xl font-black text-primary text-xs outline-none border-2 border-transparent focus:border-primary/5 shadow-inner" />
+
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              {/* Toggle de Vista (Solo PC) */}
+              <div className="hidden md:flex bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setViewFormat('cards')}
+                  className={`p-2 rounded-lg transition-all ${viewFormat === 'cards' ? 'bg-white text-primary shadow-sm' : 'text-inactive hover:text-primary'}`}
+                  title="Vista de Tarjetas"
+                >
+                  <ICONS.Grid className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewFormat('list')}
+                  className={`p-2 rounded-lg transition-all ${viewFormat === 'list' ? 'bg-white text-primary shadow-sm' : 'text-inactive hover:text-primary'}`}
+                  title="Vista de Lista"
+                >
+                  <ICONS.List className="w-5 h-5" />
+                </button>
+              </div>
+
+              <input type="date" value={fechaDiaria} onChange={e => setFechaDiaria(e.target.value)} className="w-full md:w-auto px-6 py-3 bg-slate-50 rounded-2xl font-black text-primary text-xs outline-none border-2 border-transparent focus:border-primary/5 shadow-inner" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {inscripciones.map(i => {
-              const registro = asistencias.find(a => a.inscripcionId === i.id && a.fecha === fechaDiaria);
-              const initials = dbService.getInitials(i.alumno?.nombre, i.alumno?.apellido);
-              const isFinished = i.saldoClases === 0;
-              const canRegisterToday = new Date(fechaDiaria) >= new Date(i.fechaInscripcion);
-              const hasPhoto = i.alumno?.fotoUrl && !i.alumno.fotoUrl.includes('ui-avatars.com');
+          {viewFormat === 'list' ? (
+            <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-black text-primary uppercase tracking-widest">
+                    <th className="px-10 py-6">Estudiante</th>
+                    <th className="px-10 py-6">Módulo</th>
+                    <th className="px-10 py-6 text-center">Fecha Inicio</th>
+                    <th className="px-10 py-6 text-center">Fecha Fin</th>
+                    <th className="px-10 py-6 text-center w-1/5">Clases</th>
+                    <th className="px-10 py-6 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {inscripciones.map(i => {
+                    const registro = asistencias.find(a => a.inscripcionId === i.id && a.fecha === fechaDiaria);
+                    const isFinished = i.saldoClases === 0;
+                    const canRegisterToday = new Date(fechaDiaria) >= new Date(i.fechaInscripcion);
 
-              const total = i.modulo?.totalClases || 0;
-              const consumidas = total - i.saldoClases;
+                    const total = i.modulo?.totalClases || 0;
+                    const consumidas = total - i.saldoClases;
+                    const progressPercent = total > 0 ? (consumidas / total) * 100 : 0;
+                    const barColor = progressPercent >= 100 ? 'bg-red-500' : progressPercent >= 75 ? 'bg-[#FF6400]' : 'bg-emerald-500';
 
-              return (
-                <div key={i.id} onClick={() => { setSelectedInscId(i.id); setMode('individual'); }} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all cursor-pointer group hover:-translate-y-1 relative overflow-hidden">
-                  <div className="flex items-center gap-5 mb-8">
-                    {hasPhoto ? (
-                      <img src={i.alumno?.fotoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-100 shadow-sm" alt="Profile" />
+                    // Calcular fecha de finalización basada en la última asistencia si finalizó, o estimado?
+                    // Usando logica existente: Ultima fecha de asistencia registrada para este modulo
+                    const lastAttendance = asistencias
+                      .filter(a => a.inscripcionId === i.id)
+                      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+                    const fechaFinDisplay = isFinished && lastAttendance ? dbService.formatDateDisplay(lastAttendance.fecha) : '-';
+
+                    return (
+                      <tr key={i.id} onClick={() => { setSelectedInscId(i.id); setMode('individual'); }} className="hover:bg-slate-50/40 transition-colors cursor-pointer group">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={i.alumno?.fotoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i.alumno?.id}`}
+                              alt="Avatar"
+                              className="w-12 h-12 rounded-full bg-slate-100 object-cover border-2 border-white shadow-sm"
+                            />
+                            <span className="font-black uppercase text-slate-800 leading-tight min-w-[200px]">{i.alumno?.nombre} {i.alumno?.apellido}</span>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className="text-[10px] font-bold text-inactive uppercase tracking-wider">{i.modulo?.nombre}</span>
+                        </td>
+                        <td className="px-10 py-6 text-center">
+                          <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tighter">{dbService.formatDateDisplay(i.fechaInscripcion)}</span>
+                        </td>
+                        <td className="px-10 py-6 text-center">
+                          <span className={`text-[11px] font-bold uppercase tracking-tighter ${isFinished ? 'text-red-500' : 'text-slate-400'}`}>
+                            {fechaFinDisplay}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="flex flex-col gap-1.5 px-4">
+                            <div className="flex justify-between text-[9px] font-black uppercase text-inactive tracking-wider">
+                              <span>Progreso</span>
+                              <span>{consumidas}/{total}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className={`h-full transition-all duration-700 ${barColor}`} style={{ width: `${progressPercent}%` }}></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6 text-right">
+                          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                            {isFinished ? (
+                              <span className="px-4 py-1.5 rounded-full text-[9px] font-black uppercase bg-slate-100 text-slate-500 border border-slate-200">
+                                FINALIZADO
+                              </span>
+                            ) : !canRegisterToday ? (
+                              <span className="px-4 py-1.5 bg-red-50 text-red-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-100 transition-all hover:bg-red-100">
+                                FECHA ANTERIOR AL INICIO
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-sm">
+                                <button
+                                  onClick={() => handleRegister(i.id, 'P', fechaDiaria)}
+                                  className={`w-10 h-10 rounded-lg font-black text-xs transition-all ${registro?.estado === 'P' ? 'bg-emerald-500 text-white shadow-md' : 'text-emerald-600 hover:bg-emerald-100 active:scale-95'}`}
+                                >P</button>
+                                <button
+                                  onClick={() => handleRegister(i.id, 'F', fechaDiaria)}
+                                  className={`w-10 h-10 rounded-lg font-black text-xs transition-all ${registro?.estado === 'F' ? 'bg-red-500 text-white shadow-md' : 'text-red-600 hover:bg-red-100 active:scale-95'}`}
+                                >F</button>
+                                <button
+                                  onClick={() => handleRegister(i.id, 'L', fechaDiaria)}
+                                  className={`w-10 h-10 rounded-lg font-black text-xs transition-all ${registro?.estado === 'L' ? 'bg-blue-500 text-white shadow-md' : 'text-blue-600 hover:bg-blue-100 active:scale-95'}`}
+                                >L</button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {inscripciones.map(i => {
+                const registro = asistencias.find(a => a.inscripcionId === i.id && a.fecha === fechaDiaria);
+                const initials = dbService.getInitials(i.alumno?.nombre, i.alumno?.apellido);
+                const isFinished = i.saldoClases === 0;
+                const canRegisterToday = new Date(fechaDiaria) >= new Date(i.fechaInscripcion);
+                const hasPhoto = i.alumno?.fotoUrl && !i.alumno.fotoUrl.includes('ui-avatars.com');
+
+                const total = i.modulo?.totalClases || 0;
+                const consumidas = total - i.saldoClases;
+
+                return (
+                  <div key={i.id} onClick={() => { setSelectedInscId(i.id); setMode('individual'); }} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all cursor-pointer group hover:-translate-y-1 relative overflow-hidden">
+                    <div className="flex items-center gap-5 mb-8">
+                      {hasPhoto ? (
+                        <img src={i.alumno?.fotoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-100 shadow-sm" alt="Profile" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-[1.5rem] bg-primary/10 text-primary flex items-center justify-center font-black text-lg group-hover:bg-primary group-hover:text-white transition-all shadow-inner">{initials}</div>
+                      )}
+                      <div className="flex-1 overflow-hidden">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-black text-slate-800 text-base leading-none uppercase truncate mb-1">{i.alumno?.nombre} {i.alumno?.apellido}</h4>
+                        </div>
+                        <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest">{i.modulo?.nombre}</p>
+                      </div>
+                    </div>
+
+                    {isFinished ? (
+                      <div className="py-4 rounded-2xl text-center font-black text-[11px] uppercase tracking-[0.2em] bg-slate-50 text-slate-400 border border-slate-200 animate-ez-flicker">
+                        MÓDULO FINALIZADO
+                      </div>
+                    ) : registro ? (
+                      <div className={`py-4 rounded-2xl text-center font-black text-[11px] uppercase tracking-[0.2em] border ${registro.estado === 'P' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                        registro.estado === 'F' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+                        }`}>
+                        REGISTRADO: {registro.estado === 'P' ? 'PRESENTE' : registro.estado === 'F' ? 'FALTA' : 'LICENCIA'}
+                      </div>
+                    ) : !canRegisterToday ? (
+                      <div className="py-4 rounded-2xl text-center font-black text-[10px] uppercase tracking-tighter bg-red-50 text-red-400 border border-red-100">
+                        FECHA ANTERIOR AL INICIO
+                      </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-[1.5rem] bg-primary/10 text-primary flex items-center justify-center font-black text-lg group-hover:bg-primary group-hover:text-white transition-all shadow-inner">{initials}</div>
-                    )}
-                    <div className="flex-1 overflow-hidden">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="font-black text-slate-800 text-base leading-none uppercase truncate mb-1">{i.alumno?.nombre} {i.alumno?.apellido}</h4>
-                      </div>
-                      <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest">{i.modulo?.nombre}</p>
-                    </div>
-                  </div>
-
-                  {isFinished ? (
-                    <div className="py-4 rounded-2xl text-center font-black text-[11px] uppercase tracking-[0.2em] bg-slate-50 text-slate-400 border border-slate-200 animate-ez-flicker">
-                      MÓDULO FINALIZADO
-                    </div>
-                  ) : registro ? (
-                    <div className={`py-4 rounded-2xl text-center font-black text-[11px] uppercase tracking-[0.2em] border ${registro.estado === 'P' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                      registro.estado === 'F' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100'
-                      }`}>
-                      REGISTRADO: {registro.estado === 'P' ? 'PRESENTE' : registro.estado === 'F' ? 'FALTA' : 'LICENCIA'}
-                    </div>
-                  ) : !canRegisterToday ? (
-                    <div className="py-4 rounded-2xl text-center font-black text-[10px] uppercase tracking-tighter bg-red-50 text-red-400 border border-red-100">
-                      FECHA ANTERIOR AL INICIO
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-3">
-                      <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'P', fechaDiaria); }} className="py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-black text-sm hover:bg-emerald-600 hover:text-white transition-all">P</button>
-                      <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'F', fechaDiaria); }} className="py-4 bg-red-50 text-red-600 rounded-2xl font-black text-sm hover:bg-red-600 hover:text-white transition-all">F</button>
-                      <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'L', fechaDiaria); }} className="py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-sm hover:bg-blue-600 hover:text-white transition-all">L</button>
-                    </div>
-                  )}
-
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <div className={`px-2 py-1 md:px-3 md:py-1.5 rounded-[10px] text-[8px] md:text-[9px] font-black uppercase tracking-widest border ${isFinished ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
-                      INICIO: {dbService.formatDateDisplay(i.fechaInscripcion)}
-                    </div>
-                    {isFinished && (
-                      <div className="px-2 py-1 md:px-3 md:py-1.5 rounded-[10px] bg-slate-50 text-slate-400 border border-slate-100 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
-                        FIN: {dbService.formatDateDisplay(asistencias.filter(a => a.inscripcionId === i.id).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]?.fecha || new Date().toISOString())}
+                      <div className="grid grid-cols-3 gap-3">
+                        <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'P', fechaDiaria); }} className="py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-black text-sm hover:bg-emerald-600 hover:text-white transition-all">P</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'F', fechaDiaria); }} className="py-4 bg-red-50 text-red-600 rounded-2xl font-black text-sm hover:bg-red-600 hover:text-white transition-all">F</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleRegister(i.id, 'L', fechaDiaria); }} className="py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-sm hover:bg-blue-600 hover:text-white transition-all">L</button>
                       </div>
                     )}
+
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <div className={`px-2 py-1 md:px-3 md:py-1.5 rounded-[10px] text-[8px] md:text-[9px] font-black uppercase tracking-widest border ${isFinished ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                        INICIO: {dbService.formatDateDisplay(i.fechaInscripcion)}
+                      </div>
+                      {isFinished && (
+                        <div className="px-2 py-1 md:px-3 md:py-1.5 rounded-[10px] bg-slate-50 text-slate-400 border border-slate-100 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
+                          FIN: {dbService.formatDateDisplay(asistencias.filter(a => a.inscripcionId === i.id).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]?.fecha || new Date().toISOString())}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2 flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">CLASES PENDIENTES</span>
+                      <span className={`text-sm font-black ${isFinished ? 'text-red-500' : 'text-primary'}`}>{i.saldoClases}</span>
+                    </div>
                   </div>
-                  <div className="mt-2 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">CLASES PENDIENTES</span>
-                    <span className={`text-sm font-black ${isFinished ? 'text-red-500' : 'text-primary'}`}>{i.saldoClases}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
