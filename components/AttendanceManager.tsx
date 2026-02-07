@@ -48,8 +48,21 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
   }, [asistencias, selectedInscId]);
 
   const handleRegister = async (inscripcionId: string, estado: AttendanceStatus, date: string, obs: string = '') => {
+    let forceCreate = false;
+
+    // Lógica para permitir duplicados con advertencia en modo Ficha Alumno
+    if (mode === 'individual') {
+      const existing = asistencias.find(a => a.inscripcionId === inscripcionId && a.fecha === date);
+      if (existing) {
+        if (!confirm("Esta fecha ya tiene asistencia, desea proceder?")) {
+          return;
+        }
+        forceCreate = true;
+      }
+    }
+
     try {
-      await dbService.registrarAsistencia(inscripcionId, estado, date, obs);
+      await dbService.registrarAsistencia(inscripcionId, estado, date, obs, forceCreate);
       setStatus({ msg: 'Registro exitoso', type: 'success' });
       setTimeout(() => setStatus(null), 3000);
       setIsAddingNew(false);
@@ -81,6 +94,19 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
     } catch (e: any) {
       setStatus({ msg: e.message, type: 'error' });
       setTimeout(() => setStatus(null), 3000);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este registro de asistencia? Esta acción restituirá la clase si fue marcada como Presente o Falta.')) return;
+    try {
+      await dbService.eliminarAsistencia(id);
+      setStatus({ msg: 'Registro eliminado correctamente', type: 'success' });
+      setTimeout(() => setStatus(null), 3000);
+      onUpdate();
+    } catch (e: any) {
+      setStatus({ msg: 'Error al eliminar: ' + e.message, type: 'error' });
+      setTimeout(() => setStatus(null), 4000);
     }
   };
 
@@ -146,8 +172,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
             </div>
 
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {/* Toggle de Vista (Solo PC) */}
-              <div className="hidden md:flex bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+              {/* Toggle de Vista */}
+              <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                 <button
                   onClick={() => setViewFormat('cards')}
                   className={`p-2 rounded-lg transition-all ${viewFormat === 'cards' ? 'bg-white text-primary shadow-sm' : 'text-inactive hover:text-primary'}`}
@@ -169,7 +195,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
           </div>
 
           {viewFormat === 'list' ? (
-            <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in">
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-x-auto animate-in fade-in">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-black text-primary uppercase tracking-widest">
@@ -561,9 +587,14 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ inscripcio
                                   <button onClick={() => setEditingId(null)} className="p-2 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-all"><ICONS.Plus className="w-3.5 h-3.5 rotate-45" /></button>
                                 </div>
                               ) : (
-                                <button onClick={() => startEditing(h)} className="p-2 bg-slate-100 text-primary rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-primary hover:text-white transition-all transform hover:scale-105">
-                                  <ICONS.Pencil className="w-3.5 h-3.5" />
-                                </button>
+                                <>
+                                  <button onClick={() => startEditing(h)} className="p-2 bg-slate-100 text-primary rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-primary hover:text-white transition-all transform hover:scale-105">
+                                    <ICONS.Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button onClick={() => handleDelete(h.id)} className="p-2 bg-slate-100 text-red-500 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all transform hover:scale-105" title="Eliminar Registro">
+                                    <ICONS.Trash className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
                               )}
                             </td>
                           </tr>

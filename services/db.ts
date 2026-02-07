@@ -611,7 +611,7 @@ export const dbService = {
     await supabase.from('alumnos').delete().eq('id', alumnoId);
   },
 
-  registrarAsistencia: async (inscripcionId: string, estado: AttendanceStatus, fecha: string, observacion: string = '') => {
+  registrarAsistencia: async (inscripcionId: string, estado: AttendanceStatus, fecha: string, observacion: string = '', forceCreate: boolean = false) => {
     const iIdx = _cacheInscripciones.findIndex(i => i.id === inscripcionId);
     if (iIdx === -1) throw new Error('Inscripción no encontrada');
 
@@ -619,7 +619,7 @@ export const dbService = {
       throw new Error(`Fecha inválida: La clase no puede ser anterior al inicio del módulo (${dbService.formatDateDisplay(_cacheInscripciones[iIdx].fechaInscripcion)})`);
     }
 
-    const existenteIdx = _cacheAsistencias.findIndex(a => a.inscripcionId === inscripcionId && a.fecha === fecha);
+    const existenteIdx = forceCreate ? -1 : _cacheAsistencias.findIndex(a => a.inscripcionId === inscripcionId && a.fecha === fecha);
 
     if (existenteIdx !== -1) {
       const anterior = _cacheAsistencias[existenteIdx].estado;
@@ -707,5 +707,35 @@ export const dbService = {
     _cacheInscripciones = [..._cacheInscripciones];
 
     return _cacheInscripciones[iIdx];
+  },
+
+  eliminarAsistencia: async (asistenciaId: string) => {
+    const aIdx = _cacheAsistencias.findIndex(a => a.id === asistenciaId);
+    if (aIdx === -1) throw new Error('Registro no encontrado');
+
+    const asistencia = _cacheAsistencias[aIdx];
+    const iIdx = _cacheInscripciones.findIndex(i => i.id === asistencia.inscripcionId);
+
+    // Si la asistencia descontaba clase (P o F), devolvemos la clase al saldo
+    if (iIdx !== -1 && (asistencia.estado === 'P' || asistencia.estado === 'F')) {
+      _cacheInscripciones[iIdx].saldoClases += 1;
+
+      // Actualizar saldo en DB
+      await supabase.from('inscripciones').update({
+        saldo_clases: _cacheInscripciones[iIdx].saldoClases
+      }).eq('id', _cacheInscripciones[iIdx].id);
+    }
+
+    // Eliminar de Cache
+    _cacheAsistencias = _cacheAsistencias.filter(a => a.id !== asistenciaId);
+
+    // Eliminar de DB
+    await supabase.from('asistencias').delete().eq('id', asistenciaId);
+
+    if (iIdx !== -1) {
+      _cacheInscripciones = [..._cacheInscripciones]; // Trigger reactividad si se usa el cache directamente (aunque es mejor via onUpdate)
+    }
+
+    return true;
   }
 };
